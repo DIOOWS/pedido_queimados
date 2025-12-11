@@ -2,8 +2,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser("admin", "admin@example.com", "123")
-    print("Superuser created!")
+username = "admin"
+password = "123"
+email = "admin@example.com"
+
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print(">> Superusuário criado com sucesso!")
 else:
-    print("Superuser already exists.")
+    print(">> Superusuário já existe.")
