@@ -4,9 +4,9 @@ services:
     runtime: python
     plan: free
 
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
 
-    startCommand: "./entrypoint.sh"
+    startCommand: "python manage.py migrate && gunicorn requisicoes.wsgi:application"
 
     envVars:
       - key: PYTHON_VERSION

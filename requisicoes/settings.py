@@ -104,3 +104,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
+
+# --- CRIA SUPERUSUÁRIO AUTOMATICAMENTE NO DEPLOY ---
+from django.contrib.auth.models import User
+if not User.objects.filter(username="admin").exists():
+    User.objects.create_superuser("admin", "admin@example.com", "123")
