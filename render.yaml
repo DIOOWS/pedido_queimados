@@ -1,6 +1,7 @@
 services:
   - type: web
     name: requisicao-projec
+    runtime: python
     env: python
     plan: free
 
