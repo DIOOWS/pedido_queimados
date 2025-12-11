@@ -6,12 +6,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'sua-secret-key'
 DEBUG = True
 
+# -----------------------
+# ALLOWED HOSTS CORRETO
+# -----------------------
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "192.168.100.26",
+    "192.168.100.26",      # sua rede local (opcional)
+    "requisicao.onrender.com",  # seu domínio no Render
 ]
 
+# Render preenche automaticamente o domínio real
+if "RENDER" in os.environ:
+    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
+
+# -----------------------
+# APPS
+# -----------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -23,6 +34,9 @@ INSTALLED_APPS = [
     'core',
 ]
 
+# -----------------------
+# MIDDLEWARE
+# -----------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -53,6 +67,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'requisicoes.wsgi.application'
 
+# -----------------------
+# DATABASE
+# -----------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -60,37 +77,30 @@ DATABASES = {
     }
 }
 
+# -----------------------
+# GERAL
+# -----------------------
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
+# -----------------------
+# STATIC E MEDIA
+# -----------------------
 STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [
     BASE_DIR / "core" / "static",
     BASE_DIR / "staticfiles_root",
 ]
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# ✅ CONFIGURAÇÕES CORRETAS DE LOGIN (ADICIONADAS)
+# -----------------------
+# LOGIN
+# -----------------------
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
-
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "requisicao.onrender.com",
-]
-
-
-if "RENDER" in os.environ:
-    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
