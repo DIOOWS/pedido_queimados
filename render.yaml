@@ -1,14 +1,11 @@
 services:
   - type: web
-    name: requisicao-projec
+    name: requisition
     runtime: python
     env: python
     plan: free
-
     buildCommand: "pip install -r requirements.txt"
-
-    startCommand: "python manage.py migrate && python manage.py shell < create_admin.py && gunicorn requisicoes.wsgi:application"
-
+    startCommand: "python manage.py migrate && python manage.py shell < create_admin.py && gunicorn requisicoes.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: "3.10"
