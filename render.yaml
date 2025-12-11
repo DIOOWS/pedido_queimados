@@ -1,14 +1,12 @@
 services:
   - type: web
-    name: requisicao-projec     # você pode mudar aqui
+    name: requisicao-projec
     env: python
     plan: free
 
     buildCommand: "pip install -r requirements.txt"
 
-    startCstartCommand: "python manage.py migrate && python manage.py shell < create_admin.py && gunicorn requisicoes.wsgi:application"
-
-
+    startCommand: "python manage.py migrate && python manage.py shell < create_admin.py && gunicorn requisicoes.wsgi:application"
 
     envVars:
       - key: PYTHON_VERSION
