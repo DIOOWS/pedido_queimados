@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ requisition.name }}{% endblock %}
+
+{% block content %}
+
+<h2 class="text-center mb-4" style="color:#A61C1C; font-weight:bold;">
+    {{ requisition.name }}
+</h2>
+
+<form action="{% url 'send_order' requisition.id %}" method="POST">
+    {% csrf_token %}
+
+    <div class="row g-4">
+
+        {% for product in products %}
+        <div class="col-6 col-md-3 col-lg-2">
+
+            <div class="product-card">
+                <img src="{{ product.image.url }}" class="product-img">
+
+                <div class="product-name">{{ product.name }}</div>
+
+                <div class="qty-box">
+                    <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', -1)">−</button>
+
+                    <input id="qty_{{ product.id }}"
+                           class="qty-input"
+                           type="text"
+                           value="0"
+                           name="{{ product.id }}"
+                           readonly>
+
+                    <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', 1)">+</button>
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <button class="send-btn" type="submit">Enviar Pedido</button>
+
+</form>
+
+<style>
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.product-img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+.product-name {
+    font-weight: bold;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.qty-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.qty-btn {
+    width: 32px;
+    height: 32px;
+    background: #A61C1C;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.qty-input {
+    width: 40px;
+    height: 32px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.send-btn {
+    width: 100%;
+    margin-top: 20px;
+    background: #A61C1C;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.send-btn:hover {
+    background: #861414;
+}
+</style>
+
+<script>
+function changeQty(id, amount) {
+    let input = document.getElementById("qty_" + id);
+    let value = parseInt(input.value) || 0;
+    value += amount;
+    if (value < 0) value = 0;
+    input.value = value;
+}
+</script>
+
+{% endblock %}

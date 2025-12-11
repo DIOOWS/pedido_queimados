@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Requisições Disponíveis{% endblock %}
+
+{% block content %}
+
+<h2 class="text-center fw-bold mb-4" style="color: var(--xodo-red-dark);">
+    Requisições Disponíveis
+</h2>
+
+<div class="row g-4">
+
+    {% for req in requisitions %}
+    <div class="col-6 col-md-4 col-lg-3">
+
+        <div class="req-card">
+
+            {% if req.icon %}
+                <img src="{{ req.icon.url }}" class="req-img" alt="Ícone">
+            {% elif req.image %}
+                <img src="{{ req.image.url }}" class="req-img" alt="Imagem">
+            {% else %}
+                <img src="{% static 'default_icon.png' %}" class="req-img">
+            {% endif %}
+
+            <div class="req-title">{{ req.name }}</div>
+
+            <a href="{% url 'requisition_detail' req.id %}" class="req-btn">
+                Abrir
+            </a>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<style>
+.req-card {
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.12);
+    transition: .2s;
+    text-align: center;
+}
+
+.req-card:hover {
+    transform: scale(1.03);
+}
+
+.req-img {
+    width: 100%;
+    height: 90px;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.req-title {
+    font-weight: bold;
+    color: var(--xodo-red-dark);
+    margin-bottom: 10px;
+}
+
+.req-btn {
+    padding: 8px 12px;
+    display: block;
+    background: var(--xodo-red);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+}
+.req-btn:hover {
+    background: var(--xodo-red-dark);
+}
+</style>
+
+{% endblock %}

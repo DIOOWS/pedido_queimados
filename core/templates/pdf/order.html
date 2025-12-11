@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+    }
+
+    .logo {
+        width: 150px;
+        margin-bottom: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th {
+        background: #a61c1c;
+        color: white;
+        padding: 5px;
+        font-size: 12px;
+    }
+    td {
+        padding: 4px;
+        border: 1px solid #333;
+        font-size: 11px;
+    }
+
+    .qr-container {
+        text-align:center;
+        margin-top:20px;
+    }
+
+    .qr-container img {
+        width: 150px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- LOGO -->
+{% if logo_path %}
+<img src="{{ logo_path }}" class="logo">
+{% endif %}
+
+<h3>Pedido #{{ order.id }}</h3>
+
+<p><strong>Requisição:</strong> {{ order.requisition.name }}</p>
+<p><strong>Setor:</strong> {{ order.user.username }}</p>
+<p><strong>Data:</strong> {{ order.created_at|date:"d/m/Y H:i" }}</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th style="width: 80px;">Quantidade</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for item in order.items.all %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td style="text-align: center;">{{ item.quantity }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- QR CODE -->
+<div class="qr-container">
+    <img src="data:image/png;base64,{{ qr_code }}">
+    <p style="font-size:12px;">Aponte a câmera para abrir o pedido:</p>
+    <p style="font-size:10px; color:#555;">{{ qr_url }}</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pedidos Recebidos{% endblock %}
+
+{% block content %}
+
+<h2 class="fw-bold mb-4 text-danger">Pedidos Recebidos</h2>
+
+{% if pending_orders > 0 %}
+<div class="text-center bg-warning py-2 fw-bold mb-3">
+    🔔 {{ pending_orders }} novo(s) pedido(s) aguardando
+</div>
+{% endif %}
+
+<table class="table table-bordered table-striped shadow-sm bg-white">
+    <thead class="table-danger">
+        <tr class="fw-bold text-center">
+            <th>ID</th>
+            <th>Usuário</th>
+            <th>Requisição</th>
+            <th>Data</th>
+            <th>PDF</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td class="text-center">{{ order.id }}</td>
+            <td>{{ order.user.username }}</td>
+            <td>{{ order.requisition.name }}</td>
+            <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+            <td class="text-center">
+                <a href="/xodo-admin/pedidos/{{ order.id }}/pdf/" class="btn btn-sm btn-danger fw-bold">
+                    📄 Gerar PDF
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
