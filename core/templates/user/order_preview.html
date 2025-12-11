@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedido {{ order.id }}</title>
+
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            background: white;
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header img {
+            width: 140px;
+            margin-bottom: 10px;
+        }
+
+        .order-info {
+            background: #eef2ff;
+            padding: 15px;
+            border-left: 4px solid #4c6ef5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table thead {
+            background: #4c6ef5;
+            color: white;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tr:hover {
+            background: #f1f3f5;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .qr-section img {
+            width: 160px;
+        }
+
+        .btn-download {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #4c6ef5;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .btn-download:hover {
+            background: #364fc7;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <img src="/static/logo_xodo.png" alt="Logo">
+        <h1>Pedido Nº {{ order.id }}</h1>
+        <p>Gerado em {{ order.created_at|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <div class="order-info">
+        <h2>Informações do Pedido</h2>
+        <p><strong>Usuário:</strong> {{ order.user.username }}</p>
+        <p><strong>Requisição:</strong> {{ order.requisition.title }}</p>
+    </div>
+
+    <h2>Itens do Pedido</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th style="width:120px;text-align:center;">Quantidade</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td style="text-align:center;">{{ item.quantity }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="qr-section">
+        <h3>Acompanhar Pedido</h3>
+        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+
+        <p style="margin-top:10px;">
+            <a class="btn-download" href="/xodo-admin/pedidos/{{ order.id }}/pdf/">
+                📄 Baixar PDF
+            </a>
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

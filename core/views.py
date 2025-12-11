@@ -10,19 +10,24 @@ from django.conf import settings
 
 import base64
 import os
+from io import BytesIO
 
 from xhtml2pdf import pisa
+import qrcode
 
 from .models import Requisition, Product, Order, OrderItem
 
+
+# ============================================================
+# CONTADOR DE PEDIDOS PENDENTES
+# ============================================================
 
 def get_pending_orders():
     return Order.objects.filter(is_read=False).count()
 
 
-
 # ============================================================
-# LOGIN / LOGOUT - USUÁRIO COMUM
+# LOGIN / LOGOUT – USUÁRIO COMUM
 # ============================================================
 
 def login_view(request):
@@ -74,7 +79,6 @@ def admin_home(request):
     })
 
 
-
 # ============================================================
 # ÁREA DO USUÁRIO – ENVIO DE PEDIDOS
 # ============================================================
@@ -82,10 +86,7 @@ def admin_home(request):
 @login_required
 def requisition_list(request):
     requisitions = Requisition.objects.all()
-
-    pending_orders = 0
-    if request.user.is_staff:
-        pending_orders = Order.objects.filter(is_read=False).count()
+    pending_orders = get_pending_orders() if request.user.is_staff else 0
 
     return render(request, "user/requisition_list.html", {
         "requisitions": requisitions,
@@ -127,6 +128,7 @@ def send_order(request, id):
 @login_required
 def user_orders(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
+
     return render(request, "user/user_orders.html", {"orders": orders})
 
 
@@ -152,16 +154,33 @@ def order_list(request):
     })
 
 
+# ============================================================
+# TESTE DE PDF — DIAGNÓSTICO (Render)
+# ============================================================
+
+def test_pdf(request):
+    html = """
+    <h1>PDF TESTE</h1>
+    <p>Se você vê isso, o xhtml2pdf está funcionando no Render.</p>
+    """
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="teste.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("ERRO ao gerar PDF", status=500)
+
+    return response
 
 
 # ============================================================
-# GERAR PDF — LOGO COM BASE64 (FUNCIONAL 100%)
+# GERAR PDF — FUNCIONAL 100%
 # ============================================================
+
 @staff_member_required
 def generate_pdf(request, id):
-    import qrcode
-    from io import BytesIO
-    from django.core.files.base import ContentFile
 
     order = get_object_or_404(Order, id=id)
     template = get_template("pdf/order.html")
@@ -172,8 +191,7 @@ def generate_pdf(request, id):
     logo_url = f"file:///{logo_path}"
 
     # ==== QR CODE ====
-    # URL REAL DA SUA REDE
-    qr_url = f"http://192.168.100.26:8000/xodo-admin/pedidos/{order.id}"
+    qr_url = f"https://{request.get_host()}/xodo-admin/pedidos/{order.id}"
 
     qr = qrcode.make(qr_url)
     qr_buffer = BytesIO()
@@ -202,7 +220,6 @@ def generate_pdf(request, id):
     return response
 
 
-
 # ============================================================
 # DASHBOARD
 # ============================================================
@@ -228,3 +245,26 @@ def dashboard(request):
         "produtos_mais_pedidos": produtos_mais_pedidos,
         "pending_orders": pending_orders
     })
+
+@login_required
+def order_preview(request, id):
+    import qrcode
+    from io import BytesIO
+    import base64
+
+    order = get_object_or_404(Order, id=id)
+
+    # Gera QR CODE para acompanhar pedido
+    qr_url = f"https://{request.get_host()}/xodo-admin/pedidos/{order.id}"
+
+    qr = qrcode.make(qr_url)
+    buffer = BytesIO()
+    qr.save(buffer, "PNG")
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return render(request, "user/order_preview.html", {
+        "order": order,
+        "qr_code": qr_base64,
+        "qr_url": qr_url,
+    })
+

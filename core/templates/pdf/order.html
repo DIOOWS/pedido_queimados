@@ -1,83 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="utf-8" />
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 11px;
-    }
+    <meta charset="UTF-8">
 
-    .logo {
-        width: 150px;
-        margin-bottom: 15px;
-    }
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 13px;
+            margin: 20px;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    th {
-        background: #a61c1c;
-        color: white;
-        padding: 5px;
-        font-size: 12px;
-    }
-    td {
-        padding: 4px;
-        border: 1px solid #333;
-        font-size: 11px;
-    }
+        h1, h2, h3 {
+            text-align: center;
+            margin: 5px 0;
+        }
 
-    .qr-container {
-        text-align:center;
-        margin-top:20px;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
 
-    .qr-container img {
-        width: 150px;
-    }
-</style>
+        .header img {
+            width: 120px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th {
+            background: #eee;
+            border: 1px solid #333;
+            padding: 6px;
+        }
+
+        table td {
+            border: 1px solid #333;
+            padding: 6px;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .qr-img {
+            width: 120px;
+            height: auto;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #555;
+        }
+
+    </style>
 </head>
-
 <body>
 
-<!-- LOGO -->
-{% if logo_path %}
-<img src="{{ logo_path }}" class="logo">
-{% endif %}
+    <div class="header">
+        <img src="{{ logo_path }}" alt="Logo">
+        <h2>Pedido Nº {{ order.id }}</h2>
+        <p>Data: {{ order.created_at|date:"d/m/Y H:i" }}</p>
+    </div>
 
-<h3>Pedido #{{ order.id }}</h3>
+    <h3>Itens do Pedido</h3>
 
-<p><strong>Requisição:</strong> {{ order.requisition.name }}</p>
-<p><strong>Setor:</strong> {{ order.user.username }}</p>
-<p><strong>Data:</strong> {{ order.created_at|date:"d/m/Y H:i" }}</p>
-
-<table>
-    <thead>
+    <table>
         <tr>
             <th>Produto</th>
-            <th style="width: 80px;">Quantidade</th>
+            <th>Quantidade</th>
         </tr>
-    </thead>
 
-    <tbody>
-    {% for item in order.items.all %}
+        {% for item in order.items.all %}
         <tr>
             <td>{{ item.product.name }}</td>
-            <td style="text-align: center;">{{ item.quantity }}</td>
+            <td>{{ item.quantity }}</td>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        {% endfor %}
+    </table>
 
-<!-- QR CODE -->
-<div class="qr-container">
-    <img src="data:image/png;base64,{{ qr_code }}">
-    <p style="font-size:12px;">Aponte a câmera para abrir o pedido:</p>
-    <p style="font-size:10px; color:#555;">{{ qr_url }}</p>
-</div>
+    <div class="qr-container">
+        <p>Acompanhe o pedido:</p>
+        <img class="qr-img" src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+        <p>{{ qr_url }}</p>
+    </div>
+
+    <div class="footer">
+        Documento gerado automaticamente pelo sistema de requisições.
+    </div>
 
 </body>
 </html>

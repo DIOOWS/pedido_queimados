@@ -1,28 +1,36 @@
 from pathlib import Path
 import os
+import dj_database_url
 
+# ---------------------------------------------------------
+# BASE DIR
+# ---------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'sua-secret-key'
-DEBUG = True
+# ---------------------------------------------------------
+# SEGURANÇA
+# ---------------------------------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# -----------------------
-# ALLOWED HOSTS CORRETO
-# -----------------------
+# ---------------------------------------------------------
+# ALLOWED HOSTS
+# ---------------------------------------------------------
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "192.168.100.26",      # sua rede local (opcional)
-    "requisicao.onrender.com",  # seu domínio no Render
 ]
 
-# Render preenche automaticamente o domínio real
-if "RENDER" in os.environ:
+# Render preenche automaticamente
+if "RENDER_EXTERNAL_HOSTNAME" in os.environ:
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 
-# -----------------------
+# Se quiser deixar mais permissivo na fase de testes:
+# ALLOWED_HOSTS.append("*")
+
+# ---------------------------------------------------------
 # APPS
-# -----------------------
+# ---------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,14 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'core',
+    'core',  # seu app
 ]
 
-# -----------------------
+# ---------------------------------------------------------
 # MIDDLEWARE
-# -----------------------
+# ---------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # necessário no Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -47,8 +56,36 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ---------------------------------------------------------
+# URLs / WSGI
+# ---------------------------------------------------------
 ROOT_URLCONF = 'requisicoes.urls'
+WSGI_APPLICATION = 'requisicoes.wsgi.application'
 
+# ---------------------------------------------------------
+# DATABASE (Render → PostgreSQL | Local → SQLite)
+# ---------------------------------------------------------
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+# ---------------------------------------------------------
+# TEMPLATES
+# ---------------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -65,47 +102,42 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'requisicoes.wsgi.application'
-
-# -----------------------
-# DATABASE
-# -----------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# -----------------------
-# GERAL
-# -----------------------
+# ---------------------------------------------------------
+# INTERNACIONALIZAÇÃO
+# ---------------------------------------------------------
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-# -----------------------
-# STATIC E MEDIA
-# -----------------------
+# ---------------------------------------------------------
+# ARQUIVOS ESTÁTICOS (WhiteNoise obrigatório)
+# ---------------------------------------------------------
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
     BASE_DIR / "core" / "static",
     BASE_DIR / "staticfiles_root",
 ]
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ---------------------------------------------------------
+# MEDIA
+# ---------------------------------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# -----------------------
-# LOGIN
-# -----------------------
+# ---------------------------------------------------------
+# AUTENTICAÇÃO
+# ---------------------------------------------------------
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
 
-# --- CRIA SUPERUSUÁRIO AUTOMATICAMENTE NO DEPLOY ---
-from django.contrib.auth.models import User
-if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser("admin", "admin@example.com", "123")
+# ---------------------------------------------------------
+# PADRÕES
+# ---------------------------------------------------------
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
