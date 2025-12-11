@@ -85,6 +85,12 @@ LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
 
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "requisicao.onrender.com",
+]
+
 
 if "RENDER" in os.environ:
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
