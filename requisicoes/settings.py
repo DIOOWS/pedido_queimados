@@ -34,11 +34,11 @@ INSTALLED_APPS = [
 ]
 
 # -----------------------
-# MIDDLEWARE (WHITENOISE ATIVADO)
+# MIDDLEWARE COM WHITENOISE
 # -----------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # NECESSÁRIO PARA O ADMIN TER CSS
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,7 +95,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "core" / "static",
 ]
 
-# WhiteNoise – ESSENCIAL para servir CSS/JS no Render
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = '/media/'
@@ -107,8 +106,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
-
-# --- CRIA SUPERUSUÁRIO AUTOMATICAMENTE NO DEPLOY ---
-from django.contrib.auth.models import User
-if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser("admin", "admin@example.com", "123")
