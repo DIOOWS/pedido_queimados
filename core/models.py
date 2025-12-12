@@ -1,19 +1,22 @@
 from django.db import models
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
 
 
 class Requisition(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
 
-    image = models.ImageField(
-        upload_to="requisitions/",
+    image = CloudinaryField(
+        "product_image",
+        folder="products",
         blank=True,
         null=True
     )
 
-    icon = models.ImageField(
-        upload_to="icons/",
+    icon = CloudinaryField(
+        "requisition_icon",
+        folder="icons",
         blank=True,
         null=True
     )
@@ -33,10 +36,9 @@ class Product(models.Model):
 
     name = models.CharField(max_length=100)
 
-    image = models.ImageField(
-        upload_to="products/",
-        blank=True,
-        null=True
+    image = CloudinaryField(
+        "product_image",
+        folder="products"
     )
 
     unit = models.CharField(max_length=20, default="un")
@@ -48,7 +50,6 @@ class Product(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     requisition = models.ForeignKey(Requisition, on_delete=models.CASCADE)
-
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
@@ -67,7 +68,6 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         related_name="items"
     )
-
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
