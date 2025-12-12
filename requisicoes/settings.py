@@ -2,30 +2,28 @@ from pathlib import Path
 import os
 import dj_database_url
 
-# ======================================================
-# BASE
-# ======================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ======================================================
+# =====================================================
 # SEGURANÇA
-# ======================================================
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
+# =====================================================
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    "localhost",
     "127.0.0.1",
-    "requisicao-pmmc.onrender.com",
+    "localhost",
 ]
 
-if "RENDER_EXTERNAL_HOSTNAME" in os.environ:
-    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
+if "RENDER" in os.environ:
+    ALLOWED_HOSTS.append(os.environ.get("RENDER_EXTERNAL_HOSTNAME"))
 
-# ======================================================
+ALLOWED_HOSTS.append("requisicao-pmmc.onrender.com")
+
+# =====================================================
 # APLICATIVOS
-# ======================================================
+# =====================================================
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -34,21 +32,19 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # terceiros
+    # Cloudinary (ANTES do core)
     "cloudinary",
     "cloudinary_storage",
 
-    # apps locais
     "core",
 ]
 
-# ======================================================
+# =====================================================
 # MIDDLEWARE
-# ======================================================
+# =====================================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # STATIC NO RENDER
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -57,19 +53,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# ======================================================
-# URL / WSGI
-# ======================================================
 ROOT_URLCONF = "requisicoes.urls"
-WSGI_APPLICATION = "requisicoes.wsgi.application"
 
-# ======================================================
+# =====================================================
 # TEMPLATES
-# ======================================================
+# =====================================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -82,9 +74,11 @@ TEMPLATES = [
     },
 ]
 
-# ======================================================
+WSGI_APPLICATION = "requisicoes.wsgi.application"
+
+# =====================================================
 # BANCO DE DADOS (PostgreSQL Render)
-# ======================================================
+# =====================================================
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
@@ -93,17 +87,17 @@ DATABASES = {
     )
 }
 
-# ======================================================
+# =====================================================
 # INTERNACIONALIZAÇÃO
-# ======================================================
+# =====================================================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
-# ======================================================
-# STATIC + MEDIA (DJANGO 5 + CLOUDINARY)
-# ======================================================
+# =====================================================
+# STATIC FILES
+# =====================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -111,46 +105,39 @@ STATICFILES_DIRS = [
     BASE_DIR / "core" / "static",
 ]
 
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 
-MEDIA_URL = "/media/"
+# =====================================================
+# MEDIA FILES (CLOUDINARY)
+# =====================================================
+DEFAULT_FILE_STORAGE = (
+    "cloudinary_storage.storage.MediaCloudinaryStorage"
+)
 
-# ======================================================
-# CLOUDINARY
-# ======================================================
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
 
-# ======================================================
-# AUTH
-# ======================================================
+MEDIA_URL = "/media/"
+
+# =====================================================
+# LOGIN
+# =====================================================
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 
-# ======================================================
-# SEGURANÇA PRODUÇÃO
-# ======================================================
+# =====================================================
+# PRODUÇÃO SEGURA
+# =====================================================
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-# ======================================================
-# PADRÕES
-# ======================================================
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
