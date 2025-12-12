@@ -97,7 +97,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ===============================
-# MEDIA (CLOUDINARY)
+# MEDIA - CLOUDINARY
 # ===============================
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
@@ -107,7 +107,8 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
 
-MEDIA_URL = "/media/"
+# NÃO DEFINA MEDIA_URL
+
 
 # ===============================
 # INTERNACIONALIZAÇÃO
