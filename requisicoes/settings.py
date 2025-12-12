@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "core",
 ]
 
+
 # ===============================
 # MIDDLEWARE
 # ===============================
@@ -91,6 +92,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # MEDIA (CLOUDINARY)
 # ===============================
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
