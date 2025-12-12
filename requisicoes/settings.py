@@ -4,26 +4,24 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# =====================================================
+# ===============================
 # SEGURANÇA
-# =====================================================
+# ===============================
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
-
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    "127.0.0.1",
     "localhost",
+    "127.0.0.1",
+    "requisicao-pmmc.onrender.com",
 ]
 
 if "RENDER" in os.environ:
     ALLOWED_HOSTS.append(os.environ.get("RENDER_EXTERNAL_HOSTNAME"))
 
-ALLOWED_HOSTS.append("requisicao-pmmc.onrender.com")
-
-# =====================================================
+# ===============================
 # APLICATIVOS
-# =====================================================
+# ===============================
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -32,19 +30,18 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Cloudinary (ANTES do core)
     "cloudinary",
     "cloudinary_storage",
 
     "core",
 ]
 
-# =====================================================
+# ===============================
 # MIDDLEWARE
-# =====================================================
+# ===============================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # STATIC NO RENDER
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -55,13 +52,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "requisicoes.urls"
 
-# =====================================================
+# ===============================
 # TEMPLATES
-# =====================================================
+# ===============================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,9 +73,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "requisicoes.wsgi.application"
 
-# =====================================================
-# BANCO DE DADOS (PostgreSQL Render)
-# =====================================================
+# ===============================
+# BANCO DE DADOS
+# ===============================
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
@@ -87,34 +84,26 @@ DATABASES = {
     )
 }
 
-# =====================================================
+# ===============================
 # INTERNACIONALIZAÇÃO
-# =====================================================
+# ===============================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
-# =====================================================
+# ===============================
 # STATIC FILES
-# =====================================================
+# ===============================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "core" / "static",
-]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
-
-# =====================================================
-# MEDIA FILES (CLOUDINARY)
-# =====================================================
-DEFAULT_FILE_STORAGE = (
-    "cloudinary_storage.storage.MediaCloudinaryStorage"
-)
+# ===============================
+# MEDIA / CLOUDINARY  (🔴 PARTE MAIS IMPORTANTE)
+# ===============================
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
@@ -124,20 +113,17 @@ CLOUDINARY_STORAGE = {
 
 MEDIA_URL = "/media/"
 
-# =====================================================
+# ===============================
 # LOGIN
-# =====================================================
+# ===============================
 LOGIN_URL = "/login/"
-LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
+LOGOUT_URL = "/logout/"
 
-# =====================================================
+# ===============================
 # PRODUÇÃO SEGURA
-# =====================================================
+# ===============================
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
