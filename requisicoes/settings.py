@@ -10,9 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    "requisicao-pmmc.onrender.com",
-]
+ALLOWED_HOSTS = ["requisicao-pmmc.onrender.com"]
 
 # ===============================
 # APPS
@@ -30,8 +28,6 @@ INSTALLED_APPS = [
 
     "core",
 ]
-
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ===============================
 # MIDDLEWARE
@@ -71,25 +67,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "requisicoes.wsgi.application"
 
 # ===============================
-# DATABASE (RENDER POSTGRES)
+# DATABASE
 # ===============================
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+DATABASES = {
+    "default": dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+}
 
 # ===============================
 # STATIC FILES
@@ -99,21 +87,18 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ===============================
-# MEDIA - CLOUDINARY
+# MEDIA — CLOUDINARY
 # ===============================
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
-}
-
-# NÃO DEFINA MEDIA_URL
-
+# ⚠️ NÃO DEFINA:
+# - MEDIA_URL
+# - MEDIA_ROOT
+# - CLOUDINARY_STORAGE
+# - cloudinary.config()
 
 # ===============================
-# INTERNACIONALIZAÇÃO
+# I18N
 # ===============================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
