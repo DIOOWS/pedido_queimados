@@ -8,8 +8,8 @@ class Requisition(models.Model):
     description = models.TextField(blank=True)
 
     image = CloudinaryField(
-        "product_image",
-        folder="products",
+        "requisition_image",
+        folder="requisitions",
         blank=True,
         null=True
     )
@@ -20,6 +20,7 @@ class Requisition(models.Model):
         blank=True,
         null=True
     )
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 
