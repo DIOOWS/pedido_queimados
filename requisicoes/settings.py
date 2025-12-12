@@ -7,20 +7,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ===============================
 # SEGURANÇA
 # ===============================
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
     "requisicao-pmmc.onrender.com",
 ]
 
-if "RENDER" in os.environ:
-    ALLOWED_HOSTS.append(os.environ.get("RENDER_EXTERNAL_HOSTNAME"))
-
 # ===============================
-# APLICATIVOS
+# APPS
 # ===============================
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -58,7 +53,7 @@ ROOT_URLCONF = "requisicoes.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -74,7 +69,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "requisicoes.wsgi.application"
 
 # ===============================
-# BANCO DE DADOS
+# DATABASE (RENDER)
 # ===============================
 DATABASES = {
     "default": dj_database_url.config(
@@ -85,15 +80,7 @@ DATABASES = {
 }
 
 # ===============================
-# INTERNACIONALIZAÇÃO
-# ===============================
-LANGUAGE_CODE = "pt-br"
-TIME_ZONE = "America/Sao_Paulo"
-USE_I18N = True
-USE_TZ = True
-
-# ===============================
-# STATIC FILES
+# STATIC
 # ===============================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -101,7 +88,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ===============================
-# MEDIA / CLOUDINARY  (🔴 PARTE MAIS IMPORTANTE)
+# MEDIA (CLOUDINARY)
 # ===============================
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
@@ -114,16 +101,19 @@ CLOUDINARY_STORAGE = {
 MEDIA_URL = "/media/"
 
 # ===============================
-# LOGIN
+# INTERNACIONALIZAÇÃO
 # ===============================
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_URL = "/logout/"
+LANGUAGE_CODE = "pt-br"
+TIME_ZONE = "America/Sao_Paulo"
+USE_I18N = True
+USE_TZ = True
 
 # ===============================
-# PRODUÇÃO SEGURA
+# SEGURANÇA PRODUÇÃO
 # ===============================
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
