@@ -161,20 +161,9 @@
 {% endif %}
 
 <div class="container mb-5">
-    <div class="layout-wrapper">
-
-        <!-- IMAGEM DECORATIVA -->
-        <div class="side-image">
-            <img src="{% static 'mulher.png' %}" class="decorative-img">
-        </div>
-
-        <!-- CONTEÚDO -->
-        <div class="main-content">
-            {% block content %}{% endblock %}
-        </div>
-
-    </div>
+    {% block content %}{% endblock %}
 </div>
+
 
 </body>
 </html>
