@@ -15,7 +15,21 @@
         }
 
         body {
-            background: #fafafa;
+            min-height: 100vh;
+            margin: 0;
+
+            /* 🔥 IMAGEM DE FUNDO */
+            background-image: url("https://res.cloudinary.com/dcxrdp3vu/image/upload/v1765674388/renata_p8v151.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* CAMADA CLARA POR CIMA DA IMAGEM */
+        .bg-overlay {
+            min-height: 100vh;
+            background-color: rgba(255, 255, 255, 0.88);
         }
 
         /* NAVBAR */
@@ -33,8 +47,9 @@
             color: white;
         }
 
-        /* CARDS ANTIGO MODERNIZADO */
-        .req-card {
+        /* CARDS */
+        .req-card,
+        .product-card {
             background: white;
             border-radius: 18px;
             padding: 18px;
@@ -42,21 +57,25 @@
             text-align: center;
             transition: .2s;
         }
+
         .req-card:hover {
             transform: scale(1.04);
             box-shadow: 0 6px 14px rgba(0,0,0,.18);
         }
+
         .req-card img {
             height: 80px;
             object-fit: contain;
             margin-bottom: 10px;
         }
+
         .req-title {
             font-weight: 800;
             font-size: 1rem;
             color: var(--xodo-red-dark);
             height: 40px;
         }
+
         .req-btn {
             margin-top: 10px;
             background: var(--xodo-red);
@@ -65,54 +84,10 @@
             padding: 8px 0;
             display: block;
             font-weight: bold;
-            letter-spacing: .5px;
         }
+
         .req-btn:hover {
             background: var(--xodo-red-dark);
-        }
-
-        /* PRODUTOS */
-        .product-card {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,.12);
-            text-align: center;
-            height: 100%;
-        }
-        .product-card img {
-            height: 100px;
-            object-fit: contain;
-        }
-        .product-name {
-            font-weight: bold;
-            margin-top: 10px;
-            height: 40px;
-        }
-
-        .qty-box {
-            margin-top: 12px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        .qty-btn {
-            width: 34px;
-            height: 34px;
-            background: var(--xodo-red);
-            color: white;
-            border-radius: 8px;
-            border: none;
-            font-size: 20px;
-            line-height: 20px;
-        }
-        .qty-input {
-            width: 60px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            border: 1px solid #999;
         }
 
         .send-btn {
@@ -132,6 +107,8 @@
 </head>
 
 <body>
+
+<div class="bg-overlay">
 
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
@@ -162,10 +139,10 @@
 </div>
 {% endif %}
 
-
-
 <div class="container mb-5">
     {% block content %}{% endblock %}
+</div>
+
 </div>
 
 <script>
