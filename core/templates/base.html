@@ -19,9 +19,7 @@
             overflow-x: hidden;
         }
 
-        /* =========================
-           NAVBAR
-           ========================= */
+        /* NAVBAR */
         .xodo-navbar {
             background: linear-gradient(90deg, #A61C1C, #F2B233);
             padding: 12px;
@@ -36,9 +34,51 @@
             color: white;
         }
 
-        /* =========================
-           CARDS PADRÃO
-           ========================= */
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .layout-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+        }
+
+        /* IMAGEM LATERAL */
+        .side-image {
+            width: 420px;
+            margin-left: -60px;
+            margin-top: 40px;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+
+        .decorative-img {
+            width: 100%;
+            display: block;
+
+            /* Profundidade */
+            transform: perspective(1200px) translateZ(40px);
+
+            /* Sombra */
+            filter: drop-shadow(0 30px 45px rgba(0,0,0,.28));
+
+            /* Fade inferior */
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 70%,
+                rgba(0,0,0,0) 100%
+            );
+            mask-image: linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 70%,
+                rgba(0,0,0,0) 100%
+            );
+        }
+
+        /* CONTEÚDO */
+        .main-content {
+            flex: 1;
+        }
+
+        /* ===== CARDS ===== */
         .req-card {
             background: white;
             border-radius: 18px;
@@ -79,14 +119,18 @@
         .req-btn:hover {
             background: var(--xodo-red-dark);
         }
+
+        /* RESPONSIVO */
+        @media (max-width: 1200px) {
+            .side-image {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-<!-- =========================
-     NAVBAR
-     ========================= -->
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
         <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
@@ -104,28 +148,32 @@
                 </a>
                 {% endif %}
 
-                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">
-                    Sair
-                </a>
+                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
             </div>
         {% endif %}
     </div>
 </nav>
 
-<!-- =========================
-     ALERTA DE PEDIDOS
-     ========================= -->
 {% if pending_orders > 0 %}
 <div class="text-center bg-warning py-2 fw-bold">
     🔔 {{ pending_orders }} novo(s) pedido(s) aguardando
 </div>
 {% endif %}
 
-<!-- =========================
-     CONTEÚDO DAS TELAS
-     ========================= -->
 <div class="container mb-5">
-    {% block content %}{% endblock %}
+    <div class="layout-wrapper">
+
+        <!-- IMAGEM DECORATIVA -->
+        <div class="side-image">
+            <img src="{% static 'mulher.png' %}" class="decorative-img">
+        </div>
+
+        <!-- CONTEÚDO -->
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+
+    </div>
 </div>
 
 </body>
