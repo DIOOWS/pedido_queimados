@@ -1,92 +1,85 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Requisições Disponíveis{% endblock %}
+{% block title %}Requisições{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* IMAGEM FIXA LATERAL */
+    .fixed-side-image {
+        position: fixed;
+        left: -40px;
+        top: 140px;
+        width: 420px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .fixed-side-image img {
+        width: 100%;
+        display: block;
+
+        /* Profundidade */
+        filter: drop-shadow(0 25px 40px rgba(0,0,0,.25));
+
+        /* Fade perfeito no final */
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            rgba(0,0,0,1) 75%,
+            rgba(0,0,0,0) 100%
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            rgba(0,0,0,1) 75%,
+            rgba(0,0,0,0) 100%
+        );
+    }
+
+    /* CONTEÚDO DESLOCADO PRA NÃO BATER NA IMAGEM */
+    .requisition-content {
+        margin-left: 320px;
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (max-width: 1200px) {
+        .fixed-side-image {
+            display: none;
+        }
+        .requisition-content {
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 
-<!-- IMAGEM FIXA (SÓ NESSA TELA) -->
-<div class="hero-fixed">
+<!-- IMAGEM FIXA -->
+<div class="fixed-side-image">
     <img src="{% static 'mulher.png' %}" alt="Imagem decorativa">
 </div>
 
-<h2 class="fw-bold mb-4 text-danger text-center">
-    Requisições Disponíveis
-</h2>
+<!-- CONTEÚDO -->
+<div class="requisition-content">
 
-<div class="row row-cols-1 row-cols-md-4 g-4 justify-content-end">
+    <h2 class="fw-bold mb-4 text-danger text-center">
+        Requisições Disponíveis
+    </h2>
 
-    {% for requisition in requisitions %}
-    <div class="col">
-        <div class="req-card">
-            {% if requisition.icon %}
-                <img src="{{ requisition.icon.url }}">
-            {% endif %}
-
-            <div class="req-title">
-                {{ requisition.name|upper }}
+    <div class="row g-4">
+        {% for req in requisitions %}
+        <div class="col-md-6 col-lg-3">
+            <div class="req-card">
+                <div class="req-title">{{ req.name }}</div>
+                <a href="{% url 'requisition_detail' req.id %}" class="req-btn">
+                    Abrir
+                </a>
             </div>
-
-            <a href="{% url 'requisition_detail' requisition.id %}" class="req-btn">
-                Abrir
-            </a>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 
 </div>
-
-<style>
-/* ==============================
-   IMAGEM FIXA LATERAL
-   ============================== */
-.hero-fixed {
-    position: fixed;          /* NÃO ROLA */
-    left: 30px;               /* mais pra esquerda */
-    top: 140px;               /* abaixo da navbar */
-    width: 380px;             /* tamanho correto */
-    z-index: 0;
-    pointer-events: none;
-}
-
-.hero-fixed img {
-    width: 100%;
-    background: transparent;
-
-    /* REMOVE FUNDO DIFERENTE */
-    filter:
-        drop-shadow(0 20px 30px rgba(0,0,0,.18));
-
-    /* ESFUMADO SUAVE */
-    -webkit-mask-image: linear-gradient(
-        to bottom,
-        black 88%,
-        transparent 100%
-    );
-    mask-image: linear-gradient(
-        to bottom,
-        black 88%,
-        transparent 100%
-    );
-}
-
-/* EMPURRA OS CARDS */
-@media (min-width: 992px) {
-    .container {
-        padding-left: 420px;
-    }
-}
-
-/* MOBILE: REMOVE A IMAGEM */
-@media (max-width: 991px) {
-    .hero-fixed {
-        display: none;
-    }
-
-    .container {
-        padding-left: 15px;
-    }
-}
-</style>
 
 {% endblock %}

@@ -33,100 +33,9 @@
             font-weight: bold;
             color: white;
         }
-
-        /* ===== LAYOUT PRINCIPAL ===== */
-        .layout-wrapper {
-            display: flex;
-            align-items: flex-start;
-            gap: 40px;
-        }
-
-        /* IMAGEM LATERAL */
-        .side-image {
-            width: 420px;
-            margin-left: -60px;
-            margin-top: 40px;
-            pointer-events: none;
-            flex-shrink: 0;
-        }
-
-        .decorative-img {
-            width: 100%;
-            display: block;
-
-            /* Profundidade */
-            transform: perspective(1200px) translateZ(40px);
-
-            /* Sombra */
-            filter: drop-shadow(0 30px 45px rgba(0,0,0,.28));
-
-            /* Fade inferior */
-            -webkit-mask-image: linear-gradient(
-                to bottom,
-                rgba(0,0,0,1) 70%,
-                rgba(0,0,0,0) 100%
-            );
-            mask-image: linear-gradient(
-                to bottom,
-                rgba(0,0,0,1) 70%,
-                rgba(0,0,0,0) 100%
-            );
-        }
-
-        /* CONTEÚDO */
-        .main-content {
-            flex: 1;
-        }
-
-        /* ===== CARDS ===== */
-        .req-card {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,.12);
-            text-align: center;
-            transition: .2s;
-        }
-
-        .req-card:hover {
-            transform: scale(1.04);
-            box-shadow: 0 6px 14px rgba(0,0,0,.18);
-        }
-
-        .req-card img {
-            height: 80px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        .req-title {
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--xodo-red-dark);
-            height: 40px;
-        }
-
-        .req-btn {
-            margin-top: 10px;
-            background: var(--xodo-red);
-            color: white !important;
-            border-radius: 10px;
-            padding: 8px 0;
-            display: block;
-            font-weight: bold;
-        }
-
-        .req-btn:hover {
-            background: var(--xodo-red-dark);
-        }
-
-        /* RESPONSIVO */
-        @media (max-width: 1200px) {
-            .side-image {
-                display: none;
-            }
-        }
     </style>
+
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>
@@ -161,19 +70,7 @@
 {% endif %}
 
 <div class="container mb-5">
-    <div class="layout-wrapper">
-
-        <!-- IMAGEM DECORATIVA -->
-        <div class="side-image">
-            <img src="{% static 'mulher.png' %}" class="decorative-img">
-        </div>
-
-        <!-- CONTEÚDO -->
-        <div class="main-content">
-            {% block content %}{% endblock %}
-        </div>
-
-    </div>
+    {% block content %}{% endblock %}
 </div>
 
 </body>
