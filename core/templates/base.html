@@ -15,21 +15,7 @@
         }
 
         body {
-            min-height: 100vh;
-            margin: 0;
-
-            /* 🔥 IMAGEM DE FUNDO */
-            background-image: url("https://res.cloudinary.com/dcxrdp3vu/image/upload/v1765674388/renata_p8v151.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-
-        /* CAMADA CLARA POR CIMA DA IMAGEM */
-        .bg-overlay {
-            min-height: 100vh;
-            background-color: rgba(255, 255, 255, 0.88);
+            background: #fafafa;
         }
 
         /* NAVBAR */
@@ -47,9 +33,29 @@
             color: white;
         }
 
+        /* =========================
+           LAYOUT COM IMAGEM LATERAL
+           ========================= */
+        .page-wrapper {
+            position: relative;
+        }
+
+        .side-image {
+            position: absolute;
+            left: -20px;
+            top: 120px;
+            width: 320px;
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .side-image img {
+            width: 100%;
+            height: auto;
+        }
+
         /* CARDS */
-        .req-card,
-        .product-card {
+        .req-card {
             background: white;
             border-radius: 18px;
             padding: 18px;
@@ -90,25 +96,16 @@
             background: var(--xodo-red-dark);
         }
 
-        .send-btn {
-            width: 100%;
-            margin-top: 20px;
-            background: var(--xodo-red);
-            color: white;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-        .send-btn:hover {
-            background: var(--xodo-red-dark);
+        /* RESPONSIVO */
+        @media (max-width: 992px) {
+            .side-image {
+                display: none;
+            }
         }
     </style>
 </head>
 
 <body>
-
-<div class="bg-overlay">
 
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
@@ -118,17 +115,17 @@
         </a>
 
         {% if user.is_authenticated %}
-            <div>
-                <span class="nav-user me-3">Olá, {{ user.username }}!</span>
+        <div>
+            <span class="nav-user me-3">Olá, {{ user.username }}!</span>
 
-                {% if user.is_staff %}
-                <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">
-                    Área Restrita
-                </a>
-                {% endif %}
+            {% if user.is_staff %}
+            <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">
+                Área Restrita
+            </a>
+            {% endif %}
 
-                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
-            </div>
+            <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
+        </div>
         {% endif %}
     </div>
 </nav>
@@ -139,21 +136,21 @@
 </div>
 {% endif %}
 
-<div class="container mb-5">
-    {% block content %}{% endblock %}
-</div>
+<!-- =========================
+     CONTEÚDO
+     ========================= -->
+<div class="page-wrapper">
+
+    <!-- IMAGEM LATERAL -->
+    <div class="side-image">
+        <img src="{% static 'img/mulher.png' %}" alt="Imagem decorativa">
+    </div>
+
+    <div class="container mb-5">
+        {% block content %}{% endblock %}
+    </div>
 
 </div>
-
-<script>
-function changeQty(id, amount) {
-    const input = document.getElementById("qty_" + id);
-    let value = parseInt(input.value) || 0;
-    value = value + amount;
-    if (value < 0) value = 0;
-    input.value = value;
-}
-</script>
 
 </body>
 </html>
