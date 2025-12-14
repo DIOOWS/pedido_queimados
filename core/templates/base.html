@@ -18,7 +18,7 @@
             background: #fafafa;
         }
 
-        /* NAVBAR */
+        /* ================= NAVBAR ================= */
         .xodo-navbar {
             background: linear-gradient(90deg, #A61C1C, #F2B233);
             padding: 12px;
@@ -33,7 +33,31 @@
             color: white;
         }
 
-        /* CARDS */
+        /* ================= IMAGEM DECORATIVA ================= */
+        .decorative-img {
+            max-width: 230px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1.4s ease forwards;
+            border-radius: 30px 30px 80px 80px;
+            filter: drop-shadow(0 12px 25px rgba(0,0,0,.25));
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        /* TV / telas grandes */
+        @media (min-width: 1600px) {
+            .decorative-img {
+                max-width: 300px;
+            }
+        }
+
+        /* ================= CARDS ================= */
         .req-card {
             background: white;
             border-radius: 18px;
@@ -81,7 +105,7 @@
 
 <body>
 
-<!-- NAVBAR -->
+<!-- ================= NAVBAR ================= -->
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
         <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
@@ -111,36 +135,26 @@
 </div>
 {% endif %}
 
-<!-- CONTEÚDO COM IMAGEM LATERAL -->
+<!-- ================= CONTEÚDO ================= -->
 <div class="container mb-5">
-    <div class="row align-items-start">
+    <div class="row">
 
-        <!-- IMAGEM À ESQUERDA (SÓ DESKTOP) -->
-        <div class="col-lg-3 d-none d-lg-flex justify-content-center">
+        <!-- IMAGEM DECORATIVA (DESKTOP / TV) -->
+        <div class="col-lg-3 d-none d-lg-flex align-items-start justify-content-center">
             <img
                 src="{% static 'img/mulher.png' %}"
                 alt="Imagem decorativa"
-                style="max-width: 260px; opacity: 0.9; margin-top: 40px;"
+                class="decorative-img mt-2"
             >
         </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
-        <div class="col-lg-9 col-12">
+        <div class="col-lg-9">
             {% block content %}{% endblock %}
         </div>
 
     </div>
 </div>
-
-<script>
-function changeQty(id, amount) {
-    const input = document.getElementById("qty_" + id);
-    let value = parseInt(input.value) || 0;
-    value = value + amount;
-    if (value < 0) value = 0;
-    input.value = value;
-}
-</script>
 
 </body>
 </html>
