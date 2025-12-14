@@ -110,6 +110,53 @@
 .send-btn:hover {
     background: #861414;
 }
+
+/* ===== GRID DE PRODUTOS ===== */
+.product-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+
+    /* 🔒 ALTURA FIXA */
+    height: 260px;
+
+    /* FLEX PARA ORGANIZAR CONTEÚDO */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,.12);
+    text-align: center;
+}
+
+/* IMAGEM DO PRODUTO */
+.product-card img {
+    height: 80px;
+    object-fit: contain;
+    margin: 0 auto 10px;
+}
+
+/* NOME DO PRODUTO (PADRONIZADO) */
+.product-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+    line-height: 1.2;
+
+    /* 🔒 ALTURA FIXA PARA O TEXTO */
+    min-height: 42px;
+    max-height: 42px;
+
+    overflow: hidden;
+}
+
+/* ÁREA DOS BOTÕES (+ / - / quantidade) */
+.qty-box {
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
 </style>
 
 <script>
