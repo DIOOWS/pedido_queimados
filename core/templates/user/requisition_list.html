@@ -5,93 +5,88 @@
 
 {% block content %}
 
-<h2 class="text-center fw-bold mb-4" style="color: var(--xodo-red-dark);">
+<!-- IMAGEM FIXA (SÓ NESSA TELA) -->
+<div class="hero-fixed">
+    <img src="{% static 'mulher.png' %}" alt="Imagem decorativa">
+</div>
+
+<h2 class="fw-bold mb-4 text-danger text-center">
     Requisições Disponíveis
 </h2>
 
-<div class="row g-4">
+<div class="row row-cols-1 row-cols-md-4 g-4 justify-content-end">
 
-    {% for req in requisitions %}
-    <div class="col-6 col-md-4 col-lg-3">
-
+    {% for requisition in requisitions %}
+    <div class="col">
         <div class="req-card">
-
-            {% if req.icon %}
-                <img src="{{ req.icon.url }}" class="req-img" alt="Ícone">
-            {% elif req.image %}
-                <img src="{{ req.image.url }}" class="req-img" alt="Imagem">
-            {% else %}
-                <img src="{% static 'default_icon.png' %}" class="req-img">
+            {% if requisition.icon %}
+                <img src="{{ requisition.icon.url }}">
             {% endif %}
 
-            <div class="req-title">{{ req.name }}</div>
+            <div class="req-title">
+                {{ requisition.name|upper }}
+            </div>
 
-            <a href="{% url 'requisition_detail' req.id %}" class="req-btn">
+            <a href="{% url 'requisition_detail' requisition.id %}" class="req-btn">
                 Abrir
             </a>
-
         </div>
-
     </div>
     {% endfor %}
 
 </div>
 
 <style>
-/* IMAGEM DECORATIVA FIXA — AJUSTE FINAL */
-.decorative-fixed {
-    position: fixed;
-    left: -40px;
-    top: 140px;
-    width: 440px;
+/* ==============================
+   IMAGEM FIXA LATERAL
+   ============================== */
+.hero-fixed {
+    position: fixed;          /* NÃO ROLA */
+    left: 30px;               /* mais pra esquerda */
+    top: 140px;               /* abaixo da navbar */
+    width: 380px;             /* tamanho correto */
     z-index: 0;
     pointer-events: none;
 }
 
-.decorative-fixed img {
+.hero-fixed img {
     width: 100%;
-    height: auto;
-    display: block;
-
-    /* REMOVE QUALQUER FUNDO */
     background: transparent;
 
-    /* FADE MAIS LONGO E SUAVE */
-    mask-image: linear-gradient(
-        to bottom,
-        rgba(0,0,0,1) 60%,
-        rgba(0,0,0,0.85) 72%,
-        rgba(0,0,0,0.4) 85%,
-        transparent 100%
-    );
+    /* REMOVE FUNDO DIFERENTE */
+    filter:
+        drop-shadow(0 20px 30px rgba(0,0,0,.18));
 
+    /* ESFUMADO SUAVE */
     -webkit-mask-image: linear-gradient(
         to bottom,
-        rgba(0,0,0,1) 60%,
-        rgba(0,0,0,0.85) 72%,
-        rgba(0,0,0,0.4) 85%,
+        black 88%,
         transparent 100%
     );
-
-    /* REMOVE HALO */
-    filter:
-        drop-shadow(0 12px 28px rgba(0,0,0,0.18))
-        blur(0.2px);
+    mask-image: linear-gradient(
+        to bottom,
+        black 88%,
+        transparent 100%
+    );
 }
 
-/* GARANTE QUE OS CARDS FIQUEM NA FRENTE */
-.req-card {
-    position: relative;
-    z-index: 2;
+/* EMPURRA OS CARDS */
+@media (min-width: 992px) {
+    .container {
+        padding-left: 420px;
+    }
 }
 
-/* ESCONDE EM TELAS MENORES */
-@media (max-width: 1200px) {
-    .decorative-fixed {
+/* MOBILE: REMOVE A IMAGEM */
+@media (max-width: 991px) {
+    .hero-fixed {
         display: none;
+    }
+
+    .container {
+        padding-left: 15px;
     }
 }
 </style>
-
 
 {% endblock %}
