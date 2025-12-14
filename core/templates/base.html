@@ -33,27 +33,29 @@
             color: white;
         }
 
-        /* ================= IMAGEM DECORATIVA ================= */
+        /* ================= IMAGEM LATERAL ================= */
+        .decorative-wrapper {
+            position: sticky;
+            top: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 160px);
+        }
+
         .decorative-img {
-            max-width: 230px;
+            width: 100%;
+            max-width: 380px;
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(40px);
             animation: fadeUp 1.4s ease forwards;
-            border-radius: 30px 30px 80px 80px;
-            filter: drop-shadow(0 12px 25px rgba(0,0,0,.25));
+            filter: drop-shadow(0 25px 40px rgba(0,0,0,.25));
         }
 
         @keyframes fadeUp {
             to {
-                opacity: 0.9;
+                opacity: 1;
                 transform: translateY(0);
-            }
-        }
-
-        /* TV / telas grandes */
-        @media (min-width: 1600px) {
-            .decorative-img {
-                max-width: 300px;
             }
         }
 
@@ -100,6 +102,44 @@
         .req-btn:hover {
             background: var(--xodo-red-dark);
         }
+
+        /* ================= MODO TV AUTOMÁTICO ================= */
+        @media (min-width: 1600px) {
+
+            body {
+                font-size: 1.15rem;
+            }
+
+            .req-card {
+                padding: 26px;
+                border-radius: 22px;
+            }
+
+            .req-card img {
+                height: 110px;
+            }
+
+            .req-title {
+                font-size: 1.2rem;
+            }
+
+            .req-btn {
+                font-size: 1.1rem;
+                padding: 12px 0;
+            }
+
+            .decorative-img {
+                max-width: 480px;
+            }
+
+            .xodo-logo {
+                height: 56px;
+            }
+
+            .nav-user {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 
@@ -136,19 +176,21 @@
 {% endif %}
 
 <!-- ================= CONTEÚDO ================= -->
-<div class="container mb-5">
+<div class="container-fluid px-5 mb-5">
     <div class="row">
 
-        <!-- IMAGEM DECORATIVA (DESKTOP / TV) -->
-        <div class="col-lg-3 d-none d-lg-flex align-items-start justify-content-center">
-            <img
-                src="{% static 'img/mulher.png' %}"
-                alt="Imagem decorativa"
-                class="decorative-img mt-2"
-            >
+        <!-- IMAGEM À ESQUERDA -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="decorative-wrapper">
+                <img
+                    src="{% static 'img/mulher.png' %}"
+                    alt="Imagem decorativa"
+                    class="decorative-img"
+                >
+            </div>
         </div>
 
-        <!-- CONTEÚDO PRINCIPAL -->
+        <!-- CONTEÚDO -->
         <div class="col-lg-9">
             {% block content %}{% endblock %}
         </div>
