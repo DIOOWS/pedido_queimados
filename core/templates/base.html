@@ -16,9 +16,10 @@
 
         body {
             background: #fafafa;
+            overflow-x: hidden;
         }
 
-        /* ================= NAVBAR ================= */
+        /* NAVBAR */
         .xodo-navbar {
             background: linear-gradient(90deg, #A61C1C, #F2B233);
             padding: 12px;
@@ -33,33 +34,51 @@
             color: white;
         }
 
-        /* ================= IMAGEM LATERAL ================= */
-        .decorative-wrapper {
-            position: sticky;
-            top: 120px;
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .layout-wrapper {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            height: calc(100vh - 160px);
+            align-items: flex-start;
+            gap: 40px;
+        }
+
+        /* IMAGEM LATERAL */
+        .side-image {
+            width: 420px;
+            margin-left: -60px;
+            margin-top: 40px;
+            pointer-events: none;
+            flex-shrink: 0;
         }
 
         .decorative-img {
             width: 100%;
-            max-width: 380px;
-            opacity: 0;
-            transform: translateY(40px);
-            animation: fadeUp 1.4s ease forwards;
-            filter: drop-shadow(0 25px 40px rgba(0,0,0,.25));
+            display: block;
+
+            /* Profundidade */
+            transform: perspective(1200px) translateZ(40px);
+
+            /* Sombra */
+            filter: drop-shadow(0 30px 45px rgba(0,0,0,.28));
+
+            /* Fade inferior */
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 70%,
+                rgba(0,0,0,0) 100%
+            );
+            mask-image: linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 70%,
+                rgba(0,0,0,0) 100%
+            );
         }
 
-        @keyframes fadeUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* CONTEÚDO */
+        .main-content {
+            flex: 1;
         }
 
-        /* ================= CARDS ================= */
+        /* ===== CARDS ===== */
         .req-card {
             background: white;
             border-radius: 18px;
@@ -67,7 +86,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,.12);
             text-align: center;
             transition: .2s;
-            height: 100%;
         }
 
         .req-card:hover {
@@ -96,48 +114,16 @@
             padding: 8px 0;
             display: block;
             font-weight: bold;
-            letter-spacing: .5px;
         }
 
         .req-btn:hover {
             background: var(--xodo-red-dark);
         }
 
-        /* ================= MODO TV AUTOMÁTICO ================= */
-        @media (min-width: 1600px) {
-
-            body {
-                font-size: 1.15rem;
-            }
-
-            .req-card {
-                padding: 26px;
-                border-radius: 22px;
-            }
-
-            .req-card img {
-                height: 110px;
-            }
-
-            .req-title {
-                font-size: 1.2rem;
-            }
-
-            .req-btn {
-                font-size: 1.1rem;
-                padding: 12px 0;
-            }
-
-            .decorative-img {
-                max-width: 480px;
-            }
-
-            .xodo-logo {
-                height: 56px;
-            }
-
-            .nav-user {
-                font-size: 1.2rem;
+        /* RESPONSIVO */
+        @media (max-width: 1200px) {
+            .side-image {
+                display: none;
             }
         }
     </style>
@@ -145,7 +131,6 @@
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
         <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
@@ -175,23 +160,16 @@
 </div>
 {% endif %}
 
-<!-- ================= CONTEÚDO ================= -->
-<div class="container-fluid px-5 mb-5">
-    <div class="row">
+<div class="container mb-5">
+    <div class="layout-wrapper">
 
-        <!-- IMAGEM À ESQUERDA -->
-        <div class="col-lg-3 d-none d-lg-block">
-            <div class="decorative-wrapper">
-                <img
-                    src="{% static 'img/mulher.png' %}"
-                    alt="Imagem decorativa"
-                    class="decorative-img"
-                >
-            </div>
+        <!-- IMAGEM DECORATIVA -->
+        <div class="side-image">
+            <img src="{% static 'mulher.png' %}" class="decorative-img">
         </div>
 
         <!-- CONTEÚDO -->
-        <div class="col-lg-9">
+        <div class="main-content">
             {% block content %}{% endblock %}
         </div>
 
