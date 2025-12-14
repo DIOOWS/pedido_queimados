@@ -33,27 +33,6 @@
             color: white;
         }
 
-        /* =========================
-           LAYOUT COM IMAGEM LATERAL
-           ========================= */
-        .page-wrapper {
-            position: relative;
-        }
-
-        .side-image {
-            position: absolute;
-            left: -20px;
-            top: 120px;
-            width: 320px;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-
-        .side-image img {
-            width: 100%;
-            height: auto;
-        }
-
         /* CARDS */
         .req-card {
             background: white;
@@ -62,6 +41,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,.12);
             text-align: center;
             transition: .2s;
+            height: 100%;
         }
 
         .req-card:hover {
@@ -90,23 +70,18 @@
             padding: 8px 0;
             display: block;
             font-weight: bold;
+            letter-spacing: .5px;
         }
 
         .req-btn:hover {
             background: var(--xodo-red-dark);
-        }
-
-        /* RESPONSIVO */
-        @media (max-width: 992px) {
-            .side-image {
-                display: none;
-            }
         }
     </style>
 </head>
 
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar xodo-navbar mb-4">
     <div class="container d-flex justify-content-between">
         <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
@@ -115,17 +90,17 @@
         </a>
 
         {% if user.is_authenticated %}
-        <div>
-            <span class="nav-user me-3">Olá, {{ user.username }}!</span>
+            <div>
+                <span class="nav-user me-3">Olá, {{ user.username }}!</span>
 
-            {% if user.is_staff %}
-            <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">
-                Área Restrita
-            </a>
-            {% endif %}
+                {% if user.is_staff %}
+                <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">
+                    Área Restrita
+                </a>
+                {% endif %}
 
-            <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
-        </div>
+                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
+            </div>
         {% endif %}
     </div>
 </nav>
@@ -136,21 +111,36 @@
 </div>
 {% endif %}
 
-<!-- =========================
-     CONTEÚDO
-     ========================= -->
-<div class="page-wrapper">
+<!-- CONTEÚDO COM IMAGEM LATERAL -->
+<div class="container mb-5">
+    <div class="row align-items-start">
 
-    <!-- IMAGEM LATERAL -->
-    <div class="side-image">
-        <img src="{% static 'img/mulher.png' %}" alt="Imagem decorativa">
+        <!-- IMAGEM À ESQUERDA (SÓ DESKTOP) -->
+        <div class="col-lg-3 d-none d-lg-flex justify-content-center">
+            <img
+                src="{% static 'img/mulher.png' %}"
+                alt="Imagem decorativa"
+                style="max-width: 260px; opacity: 0.9; margin-top: 40px;"
+            >
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="col-lg-9 col-12">
+            {% block content %}{% endblock %}
+        </div>
+
     </div>
-
-    <div class="container mb-5">
-        {% block content %}{% endblock %}
-    </div>
-
 </div>
+
+<script>
+function changeQty(id, amount) {
+    const input = document.getElementById("qty_" + id);
+    let value = parseInt(input.value) || 0;
+    value = value + amount;
+    if (value < 0) value = 0;
+    input.value = value;
+}
+</script>
 
 </body>
 </html>
