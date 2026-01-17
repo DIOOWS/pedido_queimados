@@ -10,7 +10,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 DEBUG = False
 
-ALLOWED_HOSTS = ["requisicao-pmmc.onrender.com"]
+ALLOWED_HOSTS = [
+    "requisicao-pmmc.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # ===============================
 # APPS
@@ -66,6 +70,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "requisicoes.wsgi.application"
 
+# ===== DEBUG DE CONFIG (temporário) =====
+# Se quiser ver nos logs do Render, deixe.
+# Depois de resolver, pode remover.
+if os.environ.get("RENDER"):
+    print("DJANGO_SETTINGS_MODULE:", os.environ.get("DJANGO_SETTINGS_MODULE"))
+    print("ROOT_URLCONF:", ROOT_URLCONF)
+    print("WSGI_APPLICATION:", WSGI_APPLICATION)
+
 # ===============================
 # DATABASE
 # ===============================
@@ -86,9 +98,6 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ===============================
-# MEDIA — CLOUDINARY
-# ===============================
 # ===============================
 # MEDIA — CLOUDINARY
 # ===============================
@@ -123,7 +132,6 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
