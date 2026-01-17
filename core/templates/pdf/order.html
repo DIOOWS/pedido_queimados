@@ -15,42 +15,13 @@
             margin: 5px 0;
         }
 
-        /* Header em tabela (xhtml2pdf-friendly) */
         .header {
+            text-align: center;
             margin-bottom: 10px;
         }
 
-        .header-table {
-            width: 100%;
-            border: 0;
-        }
-
-        .header-left {
-            width: 75%;
-            vertical-align: top;
-        }
-
-        .header-right {
-            width: 25%;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        .header-right img {
+        .header img {
             width: 120px;
-            height: auto;
-            display: inline-block;
-        }
-
-        .line1 {
-            margin: 0 0 4px 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .line2 {
-            margin: 0;
-            font-size: 12px;
         }
 
         table {
@@ -62,17 +33,18 @@
         table th {
             background: #eee;
             border: 1px solid #333;
-            padding: 2px 4px;
+            padding: 2px 4px;     /* ↓ reduz altura */
             font-size: 10px;
             line-height: 1;
         }
 
         table td {
             border: 1px solid #333;
-            padding: 2px 4px;
+            padding: 2px 4px;     /* ↓ reduz altura */
             font-size: 10px;
             line-height: 1;
         }
+
 
         .qr-container {
             text-align: center;
@@ -90,22 +62,16 @@
             font-size: 11px;
             color: #555;
         }
+
     </style>
 </head>
 <body>
 
     <div class="header">
-        <table class="header-table">
-            <tr>
-                <td class="header-left">
-                    <p class="line1">Pedido Nº {{ order.id }} — {{ order.created_at|date:"d/m/Y H:i" }}</p>
-                    <p class="line2"><strong>Requisição:</strong> {{ order.requisition.name }}</p>
-                </td>
-                <td class="header-right">
-                    <img src="{{ logo_path }}" alt="Logo Xodó">
-                </td>
-            </tr>
-        </table>
+        <img src="{{ logo_path }}" alt="Logo">
+        <h2>Pedido Nº {{ order.id }}</h2>
+        <p><strong>Requisição:</strong> {{ order.requisition.name }}</p>
+        <p>Data: {{ order.created_at|date:"d/m/Y H:i" }}</p>
     </div>
 
     <h3>Itens do Pedido</h3>

@@ -109,8 +109,10 @@ def requisition_detail(request, id):
 def send_order(request, id):
     requisition = get_object_or_404(Requisition, id=id)
 
-    order = get_object_or_404(Order.objects.select_related("requisition"), id=id)
-
+    order = Order.objects.create(
+        user=request.user,
+        requisition=requisition
+    )
 
     for product_id, quantity in request.POST.items():
         if quantity.isdigit() and int(quantity) > 0:
@@ -179,21 +181,14 @@ def test_pdf(request):
 
 @staff_member_required
 def generate_pdf(request, id):
-    order = get_object_or_404(Order.objects.select_related("requisition"), id=id)
+
+    order = get_object_or_404(Order, id=id)
     template = get_template("pdf/order.html")
 
     # ==== LOGO ====
-    # 1) Em produção (Render), após collectstatic, costuma estar em BASE_DIR/staticfiles/
-    # 2) Em dev, está em core/static/
-    candidate_paths = [
-        os.path.join(settings.BASE_DIR, "staticfiles", "logo_xodo.png"),
-        os.path.join(settings.BASE_DIR, "core", "static", "logo_xodo.png"),
-    ]
-    logo_path = next((p for p in candidate_paths if os.path.exists(p)), candidate_paths[-1])
-    logo_url = "file:///" + logo_path.replace("\\", "/")
-
-
-
+    logo_path = os.path.join(settings.BASE_DIR, "core", "static", "logo_xodo.png")
+    logo_path = logo_path.replace("\\", "/")
+    logo_url = f"file:///{logo_path}"
 
     # ==== QR CODE ====
     qr_url = f"https://{request.get_host()}/xodo-admin/pedidos/{order.id}"
@@ -223,9 +218,6 @@ def generate_pdf(request, id):
         return HttpResponse("Erro ao gerar PDF", status=500)
 
     return response
-
-
-
 
 
 # ============================================================
