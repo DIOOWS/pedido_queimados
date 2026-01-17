@@ -1,6 +1,13 @@
 from django.contrib import admin
 from django.urls import path
+from django.http import HttpResponse
 from core import views
+
+urlpatterns = [
+    path("healthz/", lambda r: HttpResponse("OK-URLS-V1")),
+    ...
+]
+
 
 urlpatterns = [
     # ====================
