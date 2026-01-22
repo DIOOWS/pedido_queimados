@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Requisition, Product
+from .models import Requisition, Product, Order
+# ... seus admins RequisitionAdmin e ProductAdmin
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "requisition", "status", "created_at", "concluded_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("user__username", "user__email", "requisition__name")
+    ordering = ("-created_at",)
 
 
 @admin.register(Requisition)
@@ -27,3 +36,4 @@ class ProductAdmin(admin.ModelAdmin):
         if obj.image:
             return obj.image.image_tag()
         return "-"
+

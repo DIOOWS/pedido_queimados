@@ -27,6 +27,8 @@ urlpatterns = [
     path("xodo-admin/pedidos/", views.order_list, name="order_list"),
     path("xodo-admin/dashboard/", views.dashboard, name="dashboard"),
     path("xodo-admin/pedidos/<int:id>/pdf/", views.generate_pdf, name="generate_pdf"),
+    path("xodo-admin/pedidos/<int:id>/concluir/", views.conclude_order, name="conclude_order"),
+
 
     # ====================
     # TESTE PDF

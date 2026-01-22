@@ -20,7 +20,8 @@
             <th>Usuário</th>
             <th>Requisição</th>
             <th>Data</th>
-            <th>PDF</th>
+            <th>Status</th>
+            <th>Ações</th>
         </tr>
     </thead>
 
@@ -31,10 +32,29 @@
             <td>{{ order.user.username }}</td>
             <td>{{ order.requisition.name }}</td>
             <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+
+            <td class="text-center">
+                <span class="badge bg-warning text-dark">PENDENTE</span>
+            </td>
+
             <td class="text-center">
                 <a href="/xodo-admin/pedidos/{{ order.id }}/pdf/" class="btn btn-sm btn-danger fw-bold">
                     📄 Gerar PDF
                 </a>
+
+                <form method="post" action="{% url 'conclude_order' order.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success fw-bold"
+                            onclick="return confirm('Marcar este pedido como CONCLUÍDO?');">
+                        ✅ Concluir
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center py-4">
+                Nenhum pedido pendente no momento.
             </td>
         </tr>
         {% endfor %}

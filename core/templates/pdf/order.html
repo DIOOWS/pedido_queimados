@@ -33,27 +33,16 @@
         table th {
             background: #eee;
             border: 1px solid #333;
-            padding: 2px 4px;     /* ↓ reduz altura */
+            padding: 2px 4px;
             font-size: 10px;
             line-height: 1;
         }
 
         table td {
             border: 1px solid #333;
-            padding: 2px 4px;     /* ↓ reduz altura */
+            padding: 2px 4px;
             font-size: 10px;
             line-height: 1;
-        }
-
-
-        .qr-container {
-            text-align: center;
-            margin-top: 25px;
-        }
-
-        .qr-img {
-            width: 120px;
-            height: auto;
         }
 
         .footer {
@@ -62,9 +51,9 @@
             font-size: 11px;
             color: #555;
         }
-
     </style>
 </head>
+
 <body>
 
     <div class="header">
@@ -89,12 +78,6 @@
         </tr>
         {% endfor %}
     </table>
-
-    <div class="qr-container">
-        <p>Acompanhe o pedido:</p>
-        <img class="qr-img" src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
-        <p>{{ qr_url }}</p>
-    </div>
 
     <div class="footer">
         Documento gerado automaticamente pelo sistema de requisições.

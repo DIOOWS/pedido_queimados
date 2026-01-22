@@ -8,9 +8,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SEGURANÇA
 # ===============================
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
-DEBUG = False
 
-ALLOWED_HOSTS = ["requisicao-pmmc.onrender.com"]
+# DEBUG por ambiente (local: set DEBUG=1)
+DEBUG = os.environ.get("DEBUG", "0") == "1"
+
+ALLOWED_HOSTS = [
+    "requisicao-pmmc.onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
 
 # ===============================
 # APPS
@@ -71,13 +77,23 @@ WSGI_APPLICATION = "requisicoes.wsgi.application"
 # ===============================
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+if DATABASE_URL:
+    # Produção (Render/Postgres etc.)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    # Local (sem DATABASE_URL) -> SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # ===============================
 # STATIC FILES
@@ -89,9 +105,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ===============================
 # MEDIA — CLOUDINARY
 # ===============================
-# ===============================
-# MEDIA — CLOUDINARY
-# ===============================
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 CLOUDINARY_STORAGE = {
@@ -99,12 +112,6 @@ CLOUDINARY_STORAGE = {
     "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
-
-# ⚠️ NÃO DEFINA:
-# - MEDIA_URL
-# - MEDIA_ROOT
-# - CLOUDINARY_STORAGE
-# - cloudinary.config()
 
 # ===============================
 # I18N
@@ -117,14 +124,25 @@ USE_TZ = True
 # ===============================
 # SEGURANÇA PRODUÇÃO
 # ===============================
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
+# Em produção (DEBUG=0) mantém tudo seguro.
+# Em local (DEBUG=1) desliga redirecionamento SSL pra não quebrar.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
+
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+

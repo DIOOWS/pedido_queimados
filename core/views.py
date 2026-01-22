@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Count, Sum
 from django.conf import settings
+from django.utils import timezone
 
 import base64
 import os
@@ -23,7 +24,7 @@ from .models import Requisition, Product, Order, OrderItem
 # ============================================================
 
 def get_pending_orders():
-    return Order.objects.filter(is_read=False).count()
+    return Order.objects.filter(status="PENDENTE").count()
 
 
 # ============================================================
@@ -128,12 +129,31 @@ def send_order(request, id):
 @login_required
 def user_orders(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
-
     return render(request, "user/user_orders.html", {"orders": orders})
 
 
 def order_sent(request):
     return render(request, "user/order_sent.html")
+
+
+@login_required
+def order_preview(request, id):
+    order = get_object_or_404(Order, id=id)
+
+    # Mantém QR aqui se você ainda usa essa tela (não mexi nela)
+    scheme = "https" if request.is_secure() else "http"
+    qr_url = f"{scheme}://{request.get_host()}/xodo-admin/pedidos/{order.id}"
+
+    qr = qrcode.make(qr_url)
+    buffer = BytesIO()
+    qr.save(buffer, "PNG")
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return render(request, "user/order_preview.html", {
+        "order": order,
+        "qr_code": qr_base64,
+        "qr_url": qr_url,
+    })
 
 
 # ============================================================
@@ -142,16 +162,23 @@ def order_sent(request):
 
 @staff_member_required
 def order_list(request):
-    orders = Order.objects.all().order_by("-created_at")
-
-    pending_orders = Order.objects.filter(is_read=False).count()
-
-    Order.objects.filter(is_read=False).update(is_read=True)
+    orders = Order.objects.filter(status="PENDENTE").order_by("-created_at")
+    pending_orders = Order.objects.filter(status="PENDENTE").count()
 
     return render(request, "admin/orders.html", {
         "orders": orders,
         "pending_orders": pending_orders
     })
+
+
+@staff_member_required
+def conclude_order(request, id):
+    if request.method == "POST":
+        order = get_object_or_404(Order, id=id)
+        order.status = "CONCLUIDO"
+        order.concluded_at = timezone.now()
+        order.save()
+    return redirect("order_list")
 
 
 # ============================================================
@@ -161,7 +188,7 @@ def order_list(request):
 def test_pdf(request):
     html = """
     <h1>PDF TESTE</h1>
-    <p>Se você vê isso, o xhtml2pdf está funcionando no Render.</p>
+    <p>Se você vê isso, o xhtml2pdf está funcionando.</p>
     """
 
     response = HttpResponse(content_type="application/pdf")
@@ -176,12 +203,11 @@ def test_pdf(request):
 
 
 # ============================================================
-# GERAR PDF — FUNCIONAL 100%
+# GERAR PDF — SEM QR CODE
 # ============================================================
 
 @staff_member_required
 def generate_pdf(request, id):
-
     order = get_object_or_404(Order, id=id)
     template = get_template("pdf/order.html")
 
@@ -190,29 +216,15 @@ def generate_pdf(request, id):
     logo_path = logo_path.replace("\\", "/")
     logo_url = f"file:///{logo_path}"
 
-    # ==== QR CODE ====
-    qr_url = f"https://{request.get_host()}/xodo-admin/pedidos/{order.id}"
-
-    qr = qrcode.make(qr_url)
-    qr_buffer = BytesIO()
-    qr.save(qr_buffer, format="PNG")
-    qr_base64 = base64.b64encode(qr_buffer.getvalue()).decode("utf-8")
-
     html = template.render({
         "order": order,
         "logo_path": logo_url,
-        "qr_code": qr_base64,
-        "qr_url": qr_url,
     })
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="pedido_{order.id}.pdf"'
 
-    pisa_status = pisa.CreatePDF(
-        html,
-        dest=response,
-        encoding="utf-8",
-    )
+    pisa_status = pisa.CreatePDF(html, dest=response, encoding="utf-8")
 
     if pisa_status.err:
         return HttpResponse("Erro ao gerar PDF", status=500)
@@ -245,26 +257,3 @@ def dashboard(request):
         "produtos_mais_pedidos": produtos_mais_pedidos,
         "pending_orders": pending_orders
     })
-
-@login_required
-def order_preview(request, id):
-    import qrcode
-    from io import BytesIO
-    import base64
-
-    order = get_object_or_404(Order, id=id)
-
-    # Gera QR CODE para acompanhar pedido
-    qr_url = f"https://{request.get_host()}/xodo-admin/pedidos/{order.id}"
-
-    qr = qrcode.make(qr_url)
-    buffer = BytesIO()
-    qr.save(buffer, "PNG")
-    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-
-    return render(request, "user/order_preview.html", {
-        "order": order,
-        "qr_code": qr_base64,
-        "qr_url": qr_url,
-    })
-
