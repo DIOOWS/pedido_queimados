@@ -59,7 +59,7 @@
     <div class="header">
         <img src="{{ logo_path }}" alt="Logo">
         <h2>Pedido Nº {{ order.id }}</h2>
-        <p><strong>Requisição:</strong> {{ order.requisition.name }}</p>
+        <p><strong>Pedido de Produtos:</strong> {{ order.requisition.name }}</p>
         <p>Data: {{ order.created_at|date:"d/m/Y H:i" }}</p>
     </div>
 
@@ -80,7 +80,7 @@
     </table>
 
     <div class="footer">
-        Documento gerado automaticamente pelo sistema de requisições.
+        Documento gerado automaticamente pelo sistema de pedidos de produtos.
     </div>
 
 </body>
