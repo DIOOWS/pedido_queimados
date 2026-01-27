@@ -12,11 +12,24 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 # DEBUG por ambiente (local: set DEBUG=1)
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 
+# Render hostname (quando existir)
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
 ALLOWED_HOSTS = [
-    "requisicao-pmmc.onrender.com",
+    "pedido-queimados.onrender.com",
     "127.0.0.1",
     "localhost",
 ]
+
+# Se o Render fornecer o hostname automaticamente, inclui também
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://pedido-queimados.onrender.com",
+]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
 # ===============================
 # APPS
@@ -78,7 +91,6 @@ WSGI_APPLICATION = "requisicoes.wsgi.application"
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
-    # Produção (Render/Postgres etc.)
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -87,7 +99,6 @@ if DATABASE_URL:
         )
     }
 else:
-    # Local (sem DATABASE_URL) -> SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -122,14 +133,26 @@ USE_I18N = True
 USE_TZ = True
 
 # ===============================
+# AUTH
+# ===============================
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login/"
+
+# ===============================
 # SEGURANÇA PRODUÇÃO
 # ===============================
-# Em produção (DEBUG=0) mantém tudo seguro.
-# Em local (DEBUG=1) desliga redirecionamento SSL pra não quebrar.
+# No Render você está atrás de proxy HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 if not DEBUG:
+    # Você pode manter True depois que tudo estiver 100% ok.
+    # Se der loop/erro em algum lugar, troque pra False.
     SECURE_SSL_REDIRECT = True
+
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -138,11 +161,5 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/login/"
-
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-
+# Default auto field (Django 5+)
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
