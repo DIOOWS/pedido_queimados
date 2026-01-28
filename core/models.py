@@ -49,18 +49,15 @@ class Product(models.Model):
 
 
 class Order(models.Model):
-    STATUS_CHOICES = (
-        ("PENDENTE", "Pendente"),
-        ("CONCLUIDO", "Concluído"),
-    )
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    requisition = models.ForeignKey(Requisition, on_delete=models.CASCADE)
+
+    # ✅ agora pode ser nulo (pedido pode conter itens de várias requisições)
+    requisition = models.ForeignKey(Requisition, on_delete=models.CASCADE, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
-    # ✅ novos campos
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDENTE")
+    status = models.CharField(max_length=20, default="PENDENTE")
     concluded_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -69,7 +66,8 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"Pedido {self.id} - {self.requisition.name}"
+        return f"Pedido {self.id}"
+
 
 
 

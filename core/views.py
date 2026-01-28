@@ -1,34 +1,39 @@
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template.loader import get_template
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from django.db.models import Count, Sum
-from django.conf import settings
 from django.utils import timezone
-
-import base64
-import os
-from io import BytesIO
+from django.views.decorators.http import require_POST
 
 from xhtml2pdf import pisa
-import qrcode
 
 from .models import Requisition, Product, Order, OrderItem
 
 
 # ============================================================
-# CONTADOR DE PEDIDOS PENDENTES
+# UTIL
 # ============================================================
 
 def get_pending_orders():
     return Order.objects.filter(status="PENDENTE").count()
 
 
+def _get_cart(session):
+    cart = session.get("cart", {})
+    if not isinstance(cart, dict):
+        cart = {}
+    session["cart"] = cart
+    return cart
+
+
 # ============================================================
-# LOGIN / LOGOUT – USUÁRIO COMUM
+# LOGIN / LOGOUT – USUÁRIO
 # ============================================================
 
 def login_view(request):
@@ -37,12 +42,11 @@ def login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
             return redirect("requisition_list")
-        else:
-            messages.error(request, "Usuário ou senha inválidos.")
+
+        messages.error(request, "Usuário ou senha inválidos.")
 
     return render(request, "login.html")
 
@@ -62,7 +66,6 @@ def admin_login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
-
         if user is not None and user.is_staff:
             login(request, user)
             return redirect("admin_home")
@@ -74,14 +77,13 @@ def admin_login_view(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def admin_home(request):
-    pending_orders = get_pending_orders()
     return render(request, "admin/home.html", {
-        "pending_orders": pending_orders
+        "pending_orders": get_pending_orders()
     })
 
 
 # ============================================================
-# ÁREA DO USUÁRIO – ENVIO DE PEDIDOS
+# ÁREA DO USUÁRIO – REQUISIÇÕES
 # ============================================================
 
 @login_required
@@ -107,28 +109,12 @@ def requisition_detail(request, id):
 
 
 @login_required
-def send_order(request, id):
-    requisition = get_object_or_404(Requisition, id=id)
-
-    order = Order.objects.create(
-        user=request.user,
-        requisition=requisition
-    )
-
-    for product_id, quantity in request.POST.items():
-        if quantity.isdigit() and int(quantity) > 0:
-            OrderItem.objects.create(
-                order=order,
-                product_id=product_id,
-                quantity=int(quantity)
-            )
-
-    return redirect("order_sent")
-
-
-@login_required
 def user_orders(request):
-    orders = Order.objects.filter(user=request.user).order_by("-created_at")
+    orders = (
+        Order.objects
+        .filter(user=request.user)
+        .order_by("-created_at")
+    )
     return render(request, "user/user_orders.html", {"orders": orders})
 
 
@@ -136,24 +122,98 @@ def order_sent(request):
     return render(request, "user/order_sent.html")
 
 
+# ============================================================
+# CARRINHO (LISTA DE ENVIO) – 1 PEDIDO ÚNICO
+# ============================================================
+
 @login_required
-def order_preview(request, id):
-    order = get_object_or_404(Order, id=id)
+@require_POST
+def cart_add(request, product_id):
+    cart = _get_cart(request.session)
+    qty = int(request.POST.get("quantity", "0") or 0)
 
-    # Mantém QR aqui se você ainda usa essa tela (não mexi nela)
-    scheme = "https" if request.is_secure() else "http"
-    qr_url = f"{scheme}://{request.get_host()}/xodo-admin/pedidos/{order.id}"
+    if qty > 0:
+        key = str(product_id)
+        cart[key] = cart.get(key, 0) + qty
+        request.session.modified = True
 
-    qr = qrcode.make(qr_url)
-    buffer = BytesIO()
-    qr.save(buffer, "PNG")
-    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+    return redirect(request.META.get("HTTP_REFERER", "cart_view"))
 
-    return render(request, "user/order_preview.html", {
-        "order": order,
-        "qr_code": qr_base64,
-        "qr_url": qr_url,
-    })
+
+@login_required
+def cart_view(request):
+    cart = _get_cart(request.session)
+    product_ids = [int(pid) for pid in cart.keys()] if cart else []
+
+    products = (
+        Product.objects
+        .select_related("requisition")
+        .filter(id__in=product_ids)
+    )
+
+    items = []
+    for p in products:
+        items.append({
+            "product": p,
+            "quantity": int(cart.get(str(p.id), 0))
+        })
+
+    items.sort(key=lambda x: (x["product"].requisition.name, x["product"].name))
+
+    return render(request, "user/cart.html", {"items": items})
+
+
+@login_required
+@require_POST
+def cart_update(request, product_id):
+    cart = _get_cart(request.session)
+    qty = int(request.POST.get("quantity", "0") or 0)
+    key = str(product_id)
+
+    if qty <= 0:
+        cart.pop(key, None)
+    else:
+        cart[key] = qty
+
+    request.session.modified = True
+    return redirect("cart_view")
+
+
+@login_required
+@require_POST
+def cart_remove(request, product_id):
+    cart = _get_cart(request.session)
+    cart.pop(str(product_id), None)
+    request.session.modified = True
+    return redirect("cart_view")
+
+
+@login_required
+@require_POST
+def cart_submit(request):
+    cart = _get_cart(request.session)
+    if not cart:
+        return redirect("cart_view")
+
+    product_ids = [int(pid) for pid in cart.keys()]
+    products = (
+        Product.objects
+        .select_related("requisition")
+        .filter(id__in=product_ids)
+    )
+
+    with transaction.atomic():
+        order = Order.objects.create(user=request.user, status="PENDENTE")
+
+        for p in products:
+            qty = int(cart.get(str(p.id), 0))
+            if qty > 0:
+                OrderItem.objects.create(order=order, product=p, quantity=qty)
+
+    request.session["cart"] = {}
+    request.session.modified = True
+
+    return redirect("order_sent")
 
 
 # ============================================================
@@ -162,70 +222,50 @@ def order_preview(request, id):
 
 @staff_member_required
 def order_list(request):
-    orders = Order.objects.filter(status="PENDENTE").order_by("-created_at")
-    pending_orders = Order.objects.filter(status="PENDENTE").count()
+    orders = (
+        Order.objects
+        .filter(status="PENDENTE")
+        .select_related("user")
+        .prefetch_related("items__product__requisition")
+        .order_by("-created_at")
+    )
 
     return render(request, "admin/orders.html", {
         "orders": orders,
-        "pending_orders": pending_orders
+        "pending_orders": orders.count()
     })
 
 
 @staff_member_required
+@require_POST
 def conclude_order(request, id):
-    if request.method == "POST":
-        order = get_object_or_404(Order, id=id)
-        order.status = "CONCLUIDO"
-        order.concluded_at = timezone.now()
-        order.save()
+    order = get_object_or_404(Order, id=id)
+    order.status = "CONCLUIDO"
+    order.concluded_at = timezone.now()
+    order.save()
     return redirect("order_list")
 
 
 # ============================================================
-# TESTE DE PDF — DIAGNÓSTICO (Render)
-# ============================================================
-
-def test_pdf(request):
-    html = """
-    <h1>PDF TESTE</h1>
-    <p>Se você vê isso, o xhtml2pdf está funcionando.</p>
-    """
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="teste.pdf"'
-
-    pisa_status = pisa.CreatePDF(html, dest=response)
-
-    if pisa_status.err:
-        return HttpResponse("ERRO ao gerar PDF", status=500)
-
-    return response
-
-
-# ============================================================
-# GERAR PDF — SEM QR CODE
+# PDF (OTIMIZADO / SEM LOGO / SEM QR)
 # ============================================================
 
 @staff_member_required
 def generate_pdf(request, id):
-    order = get_object_or_404(Order, id=id)
+    order = (
+        Order.objects
+        .select_related("user")
+        .prefetch_related("items__product__requisition")
+        .get(id=id)
+    )
+
     template = get_template("pdf/order.html")
-
-    # ==== LOGO ====
-    logo_path = os.path.join(settings.BASE_DIR, "core", "static", "logo_xodo.png")
-    logo_path = logo_path.replace("\\", "/")
-    logo_url = f"file:///{logo_path}"
-
-    html = template.render({
-        "order": order,
-        "logo_path": logo_url,
-    })
+    html = template.render({"order": order})
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="pedido_{order.id}.pdf"'
 
     pisa_status = pisa.CreatePDF(html, dest=response, encoding="utf-8")
-
     if pisa_status.err:
         return HttpResponse("Erro ao gerar PDF", status=500)
 
@@ -257,3 +297,20 @@ def dashboard(request):
         "produtos_mais_pedidos": produtos_mais_pedidos,
         "pending_orders": pending_orders
     })
+
+
+# ============================================================
+# TESTE PDF (opcional)
+# ============================================================
+
+def test_pdf(request):
+    html = """
+    <h1>PDF TESTE</h1>
+    <p>Se você vê isso, o xhtml2pdf está funcionando.</p>
+    """
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="teste.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse("ERRO ao gerar PDF", status=500)
+    return response

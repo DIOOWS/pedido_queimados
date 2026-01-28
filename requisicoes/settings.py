@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
+load_dotenv()
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,11 +18,8 @@ DEBUG = os.environ.get("DEBUG", "0") == "1"
 # Render hostname (quando existir)
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
-ALLOWED_HOSTS = [
-    "pedido-queimados.onrender.com",
-    "127.0.0.1",
-    "localhost",
-]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "requisicao-pmmc.onrender.com"]
+
 
 # Se o Render fornecer o hostname automaticamente, inclui também
 if RENDER_EXTERNAL_HOSTNAME:
@@ -145,14 +145,13 @@ LOGOUT_REDIRECT_URL = "/login/"
 # No Render você está atrás de proxy HTTPS
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-if not DEBUG:
-    # Você pode manter True depois que tudo estiver 100% ok.
-    # Se der loop/erro em algum lugar, troque pra False.
-    SECURE_SSL_REDIRECT = True
+DEBUG = os.environ.get("DEBUG", "0") == "1"
 
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -160,6 +159,9 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0
+
 
 # Default auto field (Django 5+)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+

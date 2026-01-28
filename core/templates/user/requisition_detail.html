@@ -9,70 +9,90 @@
     {{ requisition.name }}
 </h2>
 
-<form action="{% url 'send_order' requisition.id %}" method="POST">
-    {% csrf_token %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'cart_view' %}" class="btn btn-outline-danger fw-bold">
+    Ver lista de envio
+  </a>
+</div>
 
-    <div class="row g-4">
+<div class="row g-4">
 
-        {% for product in products %}
-        <div class="col-6 col-md-3 col-lg-2">
+    {% for product in products %}
+    <div class="col-6 col-md-3 col-lg-2">
 
-            <div class="product-card">
-                <img src="{{ product.image.url }}" class="product-img">
+        <div class="product-card">
+            <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
 
-                <div class="product-name">{{ product.name }}</div>
+            <div class="product-name">{{ product.name }}</div>
 
-                <div class="qty-box">
-                    <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', -1)">−</button>
+            <div class="qty-box">
+                <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', -1)">−</button>
 
-                    <input id="qty_{{ product.id }}"
-                           class="qty-input"
-                           type="text"
-                           value="0"
-                           name="{{ product.id }}"
-                           readonly>
+                <input id="qty_{{ product.id }}"
+                       class="qty-input"
+                       type="text"
+                       value="0"
+                       readonly>
 
-                    <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', 1)">+</button>
-                </div>
+                <button type="button" class="qty-btn" onclick="changeQty('{{ product.id }}', 1)">+</button>
             </div>
 
+            <!-- ✅ Salvar no carrinho (um form por produto) -->
+            <form action="{% url 'cart_add' product.id %}" method="POST" class="mt-2">
+                {% csrf_token %}
+                <!-- pega o valor do input readonly via JS antes de enviar -->
+                <input type="hidden" name="quantity" id="hidden_qty_{{ product.id }}" value="0">
+                <button type="submit" class="btn btn-danger fw-bold w-100"
+                        onclick="syncHiddenQty('{{ product.id }}')">
+                    Salvar na lista
+                </button>
+            </form>
+
         </div>
-        {% endfor %}
 
     </div>
+    {% endfor %}
 
-    <button class="send-btn" type="submit">Enviar Pedido</button>
-
-</form>
+</div>
 
 <style>
 .product-card {
     background: #fff;
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 18px;
+    padding: 18px;
+
+    height: 260px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,.12);
     text-align: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
 .product-img {
-    width: 70px;
-    height: 70px;
+    height: 80px;
     object-fit: contain;
-    margin-bottom: 5px;
+    margin: 0 auto 10px;
 }
 
 .product-name {
     font-weight: bold;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    min-height: 42px;
+    max-height: 42px;
+    overflow: hidden;
     text-transform: uppercase;
 }
 
 .qty-box {
+    margin-top: auto;
     display: flex;
     justify-content: center;
+    gap: 8px;
     align-items: center;
-    gap: 6px;
 }
 
 .qty-btn {
@@ -94,69 +114,6 @@
     border: 1px solid #ccc;
     border-radius: 6px;
 }
-
-.send-btn {
-    width: 100%;
-    margin-top: 20px;
-    background: #A61C1C;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-.send-btn:hover {
-    background: #861414;
-}
-
-/* ===== GRID DE PRODUTOS ===== */
-.product-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 18px;
-
-    /* 🔒 ALTURA FIXA */
-    height: 260px;
-
-    /* FLEX PARA ORGANIZAR CONTEÚDO */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,.12);
-    text-align: center;
-}
-
-/* IMAGEM DO PRODUTO */
-.product-card img {
-    height: 80px;
-    object-fit: contain;
-    margin: 0 auto 10px;
-}
-
-/* NOME DO PRODUTO (PADRONIZADO) */
-.product-name {
-    font-weight: bold;
-    font-size: 0.95rem;
-    line-height: 1.2;
-
-    /* 🔒 ALTURA FIXA PARA O TEXTO */
-    min-height: 42px;
-    max-height: 42px;
-
-    overflow: hidden;
-}
-
-/* ÁREA DOS BOTÕES (+ / - / quantidade) */
-.qty-box {
-    margin-top: auto;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-
 </style>
 
 <script>
@@ -166,6 +123,12 @@ function changeQty(id, amount) {
     value += amount;
     if (value < 0) value = 0;
     input.value = value;
+}
+
+function syncHiddenQty(id) {
+    const visible = document.getElementById("qty_" + id);
+    const hidden = document.getElementById("hidden_qty_" + id);
+    hidden.value = parseInt(visible.value) || 0;
 }
 </script>
 

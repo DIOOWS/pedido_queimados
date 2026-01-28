@@ -14,10 +14,17 @@ urlpatterns = [
     # ====================
     path("", views.requisition_list, name="requisition_list"),
     path("requisition/<int:id>/", views.requisition_detail, name="requisition_detail"),
-    path("requisition/<int:id>/send/", views.send_order, name="send_order"),
     path("meus-pedidos/", views.user_orders, name="user_orders"),
     path("pedido-enviado/", views.order_sent, name="order_sent"),
-    path("pedido/<int:id>/preview/", views.order_preview, name="order_preview"),
+
+    # ====================
+    # CARRINHO (LISTA DE ENVIO)
+    # ====================
+    path("lista/", views.cart_view, name="cart_view"),
+    path("lista/add/<int:product_id>/", views.cart_add, name="cart_add"),
+    path("lista/update/<int:product_id>/", views.cart_update, name="cart_update"),
+    path("lista/remove/<int:product_id>/", views.cart_remove, name="cart_remove"),
+    path("lista/enviar/", views.cart_submit, name="cart_submit"),
 
     # ====================
     # ADMIN / SETOR
@@ -29,9 +36,8 @@ urlpatterns = [
     path("xodo-admin/pedidos/<int:id>/pdf/", views.generate_pdf, name="generate_pdf"),
     path("xodo-admin/pedidos/<int:id>/concluir/", views.conclude_order, name="conclude_order"),
 
-
     # ====================
-    # TESTE PDF
+    # TESTE PDF (opcional)
     # ====================
     path("test-pdf/", views.test_pdf),
 
