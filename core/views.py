@@ -2,7 +2,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponse
@@ -193,6 +192,7 @@ def cart_remove(request, product_id):
 def cart_submit(request):
     cart = _get_cart(request.session)
     if not cart:
+        messages.warning(request, "Sua lista está vazia.")
         return redirect("cart_view")
 
     product_ids = [int(pid) for pid in cart.keys()]
@@ -213,7 +213,52 @@ def cart_submit(request):
     request.session["cart"] = {}
     request.session.modified = True
 
+    messages.success(request, "Pedido enviado com sucesso ✅")
     return redirect("order_sent")
+
+
+# ============================================================
+# ✅ ADD BULK (ATUALIZADO) – VOLTA PRA MESMA REQUISIÇÃO
+# ============================================================
+
+@login_required
+@require_POST
+def cart_add_bulk(request, requisition_id):
+    """
+    Recebe vários produtos/quantidades de uma tela de requisição (qty_<id>)
+    e soma no carrinho da sessão.
+    Depois volta para a mesma tela, mostra mensagem e zera inputs via JS.
+    """
+    cart = _get_cart(request.session)
+
+    added_any = False
+
+    for key, value in request.POST.items():
+        if not key.startswith("qty_"):
+            continue
+
+        product_id = key.replace("qty_", "")
+        if not product_id.isdigit():
+            continue
+
+        try:
+            qty = int(value)
+        except ValueError:
+            qty = 0
+
+        if qty > 0:
+            pid = str(int(product_id))
+            cart[pid] = cart.get(pid, 0) + qty
+            added_any = True
+
+    request.session.modified = True
+
+    if added_any:
+        messages.success(request, "Itens adicionados na lista ✅")
+    else:
+        messages.warning(request, "Nenhum item foi adicionado (tudo 0).")
+
+    return redirect("requisition_detail", id=requisition_id)
 
 
 # ============================================================
