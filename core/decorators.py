@@ -1,11 +1,29 @@
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
-def receiver_required(view_func):
+def location_required(location_name: str):
     """
-    Permite acesso somente a:
-    - Usuário com permissão can_receive_orders
-    - Administrador (is_staff)
+    Restringe uma view para usuários cujo profile.location.name seja igual ao location_name.
+    Ex:
+        @location_required("Austin")
+        def minha_view(...):
+            ...
     """
-    return user_passes_test(
-        lambda u: u.is_authenticated and (u.has_perm("core.can_receive_orders") or u.is_staff)
-    )(view_func)
+    def decorator(view_func):
+        @login_required
+        def _wrapped(request, *args, **kwargs):
+            prof = getattr(request.user, "profile", None)
+
+            if not prof or not prof.location:
+                messages.error(request, "Seu usuário não possui setor definido. Fale com o administrador.")
+                return redirect("requisition_list")
+
+            if prof.location.name.strip().lower() != location_name.strip().lower():
+                messages.error(request, "Acesso não permitido para seu setor.")
+                return redirect("requisition_list")
+
+            return view_func(request, *args, **kwargs)
+
+        return _wrapped
+    return decorator

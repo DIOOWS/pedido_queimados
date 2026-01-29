@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
 
-    "core",
+    "core.apps.CoreConfig",
+
 ]
 
 # ===============================

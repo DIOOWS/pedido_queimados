@@ -177,7 +177,13 @@
 
         {% if user.is_authenticated %}
             <div>
-                <span class="nav-user me-3">Olá, {{ user.username }}!</span>
+                <span class="nav-user me-3">
+                  Olá, {{ user.username }}!
+                  {% if user.profile and user.profile.location %}
+                    <span class="ms-1" style="opacity:.9;">({{ user.profile.location.name }})</span>
+                  {% endif %}
+                </span>
+
 
                 {% if user.is_staff %}
                 <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">

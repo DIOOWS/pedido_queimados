@@ -21,7 +21,6 @@ class Requisition(models.Model):
         null=True
     )
 
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -49,15 +48,37 @@ class Product(models.Model):
 
 
 class Order(models.Model):
+    class Status(models.TextChoices):
+        PENDENTE = "PENDENTE", "Pendente"
+        CONCLUIDO = "CONCLUIDO", "Concluído"
+
+        # (pra sua próxima fase do fluxo, já deixo pronto)
+        RECEBIDO_AUSTIN = "RECEBIDO_AUSTIN", "Recebido (Austin)"
+        EM_SEPARACAO = "EM_SEPARACAO", "Em separação"
+        ENVIADO = "ENVIADO", "Enviado"
+        RECEBIDO_QUEIMADOS = "RECEBIDO_QUEIMADOS", "Recebido (Queimados)"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    # ✅ agora pode ser nulo (pedido pode conter itens de várias requisições)
-    requisition = models.ForeignKey(Requisition, on_delete=models.CASCADE, null=True, blank=True)
+    # pedido pode conter itens de várias requisições
+    requisition = models.ForeignKey(
+        Requisition,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # se você ainda usa pra badge de "novo pedido", pode manter
     is_read = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, default="PENDENTE")
+    status = models.CharField(
+        max_length=30,
+        choices=Status.choices,
+        default=Status.PENDENTE
+    )
+
     concluded_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -67,8 +88,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Pedido {self.id}"
-
-
 
 
 class OrderItem(models.Model):
@@ -82,3 +101,28 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
+
+
+# =========================
+# SETOR / LOCAL (Austin / Queimados)
+# =========================
+
+class Location(models.Model):
+    name = models.CharField(max_length=60, unique=True)  # Austin / Queimados
+
+    def __str__(self):
+        return self.name
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    # ✅ IMPORTANTE: deixe null/blank para não quebrar usuários antigos
+    # Depois você vai no admin e define Austin/Queimados para cada usuário.
+    location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, blank=True)
+
+    last_seen = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        loc = self.location.name if self.location else "Sem setor"
+        return f"{self.user.username} - {loc}"
