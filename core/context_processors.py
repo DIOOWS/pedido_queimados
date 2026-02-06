@@ -1,4 +1,4 @@
-from core.models import Order
+from requisicoes.models import Order
 
 def pending_orders(request):
     if request.user.is_authenticated and request.user.is_staff:

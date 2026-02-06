@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from core.models import Requisition, Product
+from requisicoes.models import Requisition, Product
 
 class Command(BaseCommand):
     help = "Remove referências antigas de imagens locais (/media/)"

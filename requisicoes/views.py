@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.contrib.auth import authenticate, login, logout
 
-from core.models import (
+from requisicoes.models import (
     Requisition,
     Product,
     Order,
