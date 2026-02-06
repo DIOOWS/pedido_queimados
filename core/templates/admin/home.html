@@ -1,27 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Painel Interno{% endblock %}
 
 {% block content %}
+<div style="max-width: 1000px; margin: 30px auto;">
+  <h1 style="color:#d9485f; font-weight: 800; font-size: 40px;">
+    Painel Interno de Pedidos Xodó
+  </h1>
 
-<h2 class="fw-bold mb-4 text-danger">Painel Interno de Pedidos Xodó</h2>
+  <div style="background:#fff; border:1px solid #ddd; border-radius:6px; margin-top:20px;">
+    <div style="padding:12px 16px; border-bottom:1px solid #eee;">
+      📦 <a href="{% url 'order_list' %}" style="text-decoration:none; font-weight:700;">Ver Pedidos</a>
+    </div>
 
-<div class="list-group shadow-sm">
+    <div style="padding:12px 16px; border-bottom:1px solid #eee;">
+      📊 <a href="{% url 'dashboard' %}" style="text-decoration:none; font-weight:700;">Dashboard</a>
+    </div>
 
-    <a href="/xodo-admin/pedidos/" class="list-group-item list-group-item-action fw-bold d-flex justify-content-between">
-        <span>📦 Ver Pedidos</span>
-
-        {% if pending_orders > 0 %}
-        <span class="badge bg-danger">{{ pending_orders }}</span>
-        {% endif %}
-    </a>
-
-    <a href="/xodo-admin/dashboard/" class="list-group-item list-group-item-action fw-bold">
-        📊 Dashboard
-    </a>
-
-    <a href="/admin/" class="list-group-item list-group-item-action fw-bold text-danger">
-        ⚙ Painel Admin (somente usuários autorizados)
-    </a>
+    {% if request.user.is_staff or request.user.is_superuser %}
+      <div style="padding:12px 16px;">
+        ⚙️ <a href="/admin/" style="text-decoration:none; font-weight:700; color:#d9485f;">
+          Painel Admin (somente usuários autorizados)
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </div>
-
 {% endblock %}

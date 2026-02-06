@@ -1,21 +1,38 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseForbidden
-from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.template.loader import render_to_string
-from weasyprint import HTML
 
 from .models import Order, OrderStatusHistory
 
 
+def _is_austin(request):
+    try:
+        return request.user.profile.location.name == "Austin"
+    except Exception:
+        return False
+
+
+# =========================================================
+# HOME DO PAINEL INTERNO (AUSTIN)
+# URL: /xodo-admin/
+# =========================================================
+@login_required
+def admin_home(request):
+    if not _is_austin(request):
+        return HttpResponseForbidden("Acesso restrito ao painel interno.")
+
+    return render(request, "admin/home.html")
+
+
 # =========================================================
 # LISTA DE PEDIDOS RECEBIDOS (AUSTIN)
+# URL: /xodo-admin/pedidos/
 # =========================================================
-@staff_member_required
+@login_required
 def order_list(request):
-    # Garante que o staff é da filial Austin
-    if request.user.profile.location.name != "Austin":
-        return HttpResponseForbidden("Acesso restrito à filial Austin.")
+    if not _is_austin(request):
+        return HttpResponseForbidden("Acesso restrito ao painel interno.")
 
     orders = Order.objects.filter(
         destination_location__name="Austin"
@@ -29,53 +46,41 @@ def order_list(request):
 
 
 # =========================================================
-# MARCAR PEDIDO COMO ENVIADO (CONCLUIR)
+# ATUALIZAR STATUS DO PEDIDO (AUSTIN)
 # =========================================================
-@staff_member_required
-def conclude_order(request, id):
-    if request.user.profile.location.name != "Austin":
-        return HttpResponseForbidden("Acesso restrito à filial Austin.")
+@login_required
+def update_order_status(request, order_id, new_status):
+    if not _is_austin(request):
+        return HttpResponseForbidden("Acesso restrito ao painel interno.")
 
     order = get_object_or_404(
         Order,
-        id=id,
+        id=order_id,
         destination_location__name="Austin"
     )
 
-    order.status = Order.Status.ENVIADO
+    allowed = [
+        Order.Status.RECEBIDO,
+        Order.Status.SEPARANDO,
+        Order.Status.ENVIADO,
+    ]
+
+    if new_status not in allowed:
+        messages.error(request, "Status inválido.")
+        return redirect("order_list")
+
+    order.status = new_status
     order.save()
 
     OrderStatusHistory.objects.create(
         order=order,
-        status=Order.Status.ENVIADO,
+        status=new_status,
         changed_by=request.user
     )
 
     messages.success(
         request,
-        f"Pedido #{order.id} marcado como ENVIADO."
+        f"Pedido #{order.id} atualizado para {order.get_status_display()}."
     )
 
     return redirect("order_list")
-
-
-# =========================================================
-# GERAR PDF DO PEDIDO (MANTIDO)
-# =========================================================
-@staff_member_required
-def generate_pdf(request, id):
-    if request.user.profile.location.name != "Austin":
-        return HttpResponseForbidden("Acesso restrito à filial Austin.")
-
-    order = get_object_or_404(
-        Order,
-        id=id,
-        destination_location__name="Austin"
-    )
-
-    html_string = render_to_string("pdf/order.html", {"order": order})
-    pdf = HTML(string=html_string).write_pdf()
-
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f"filename=pedido_{order.id}.pdf"
-    return response

@@ -1,76 +1,77 @@
-{% extends "admin/base_site.html" %}
-{% load static %}
+{% extends "base.html" %}
+{% block title %}Pedidos Recebidos{% endblock %}
 
 {% block content %}
-<h1>Pedidos Recebidos - Filial Austin</h1>
+<h2 class="fw-bold text-danger mb-4">
+  Pedidos Recebidos — Austin
+</h2>
 
 {% if messages %}
   {% for message in messages %}
-    <p style="color: green;">{{ message }}</p>
+    <div class="alert alert-success">{{ message }}</div>
   {% endfor %}
 {% endif %}
 
 {% if orders %}
   {% for order in orders %}
-    <div style="
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 5px;
-    ">
-      <h3>Pedido #{{ order.id }}</h3>
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
 
-      <p>
-        <strong>Origem:</strong> {{ order.origin_location.name }}<br>
-        <strong>Status:</strong> {{ order.get_status_display }}<br>
-        <strong>Criado em:</strong> {{ order.created_at|date:"d/m/Y H:i" }}
-      </p>
+        <div class="d-flex justify-content-between flex-wrap">
+          <div>
+            <h5 class="mb-1">Pedido #{{ order.id }}</h5>
+            <div class="text-muted">
+              Origem: {{ order.origin_location.name }} •
+              Criado em {{ order.created_at|date:"d/m/Y H:i" }}
+            </div>
+          </div>
 
-      <h4>Itens do pedido</h4>
-      <ul>
-        {% for item in order.items.all %}
-          <li>
-            {{ item.product.name }} —
-            Quantidade: {{ item.quantity }}
-          </li>
-        {% endfor %}
-      </ul>
+          <span class="badge bg-dark align-self-start">
+            {{ order.get_status_display }}
+          </span>
+        </div>
 
-      <div style="margin-top: 15px;">
-        <!-- BOTÃO ENVIADO -->
-        <form method="post" action="{% url 'conclude_order' order.id %}" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit"
-            style="
-              background-color: #198754;
-              color: white;
-              border: none;
-              padding: 8px 12px;
-              cursor: pointer;
-              border-radius: 4px;
-            ">
-            Marcar como ENVIADO
-          </button>
-        </form>
+        <hr>
 
-        <!-- PDF -->
-        <a href="{% url 'generate_pdf' order.id %}"
-           target="_blank"
-           style="
-             margin-left: 10px;
-             background-color: #0d6efd;
-             color: white;
-             padding: 8px 12px;
-             text-decoration: none;
-             border-radius: 4px;
-           ">
-          PDF
-        </a>
+        <h6 class="fw-bold">Itens</h6>
+        <ul>
+          {% for item in order.items.all %}
+            <li>{{ item.product.name }} — <strong>{{ item.quantity }}</strong></li>
+          {% endfor %}
+        </ul>
+
+        <div class="d-flex gap-2 flex-wrap mt-3">
+
+          {% if order.status == "CRIADO" %}
+            <a href="{% url 'update_order_status' order.id 'RECEBIDO' %}"
+               class="btn btn-warning fw-bold">
+              Marcar como Recebido
+            </a>
+          {% endif %}
+
+          {% if order.status == "RECEBIDO" %}
+            <a href="{% url 'update_order_status' order.id 'SEPARANDO' %}"
+               class="btn btn-primary fw-bold">
+              Iniciar Separação
+            </a>
+          {% endif %}
+
+          {% if order.status == "SEPARANDO" %}
+            <a href="{% url 'update_order_status' order.id 'ENVIADO' %}"
+               class="btn btn-success fw-bold">
+              Marcar como Enviado
+            </a>
+          {% endif %}
+
+        </div>
+
       </div>
     </div>
   {% endfor %}
 {% else %}
-  <p>Nenhum pedido pendente no momento.</p>
+  <div class="alert alert-warning">
+    Nenhum pedido pendente no momento.
+  </div>
 {% endif %}
 
 {% endblock %}

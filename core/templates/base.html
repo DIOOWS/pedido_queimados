@@ -38,47 +38,35 @@
             --xodo-yellow: #f2b233;
         }
 
-        html, body {
-            height: 100%;
-        }
+        html, body { height: 100%; }
 
         body {
             background: #FDCF6D;
             overflow-x: hidden;
-
-            /* para empurrar o footer para o final */
             display: flex;
             flex-direction: column;
         }
 
-        /* wrapper que ocupa o "meio" */
-        .main-wrapper {
-            flex: 1;
-        }
+        .main-wrapper { flex: 1; }
 
-        /* NAVBAR */
         .xodo-navbar {
             background: linear-gradient(90deg, #8E1B1B, #E09F2D);
             padding: 12px;
         }
 
-        .xodo-logo {
-            height: 42px;
-        }
+        .xodo-logo { height: 42px; }
 
         .nav-user {
             font-weight: bold;
             color: white;
         }
 
-        /* ===== LAYOUT PRINCIPAL ===== */
         .layout-wrapper {
             display: flex;
             align-items: flex-start;
             gap: 40px;
         }
 
-        /* IMAGEM LATERAL */
         .side-image {
             width: 420px;
             margin-left: -60px;
@@ -90,14 +78,8 @@
         .decorative-img {
             width: 100%;
             display: block;
-
-            /* Profundidade */
             transform: perspective(1200px) translateZ(40px);
-
-            /* Sombra */
             filter: drop-shadow(0 30px 45px rgba(0,0,0,.28));
-
-            /* Fade inferior */
             -webkit-mask-image: linear-gradient(
                 to bottom,
                 rgba(0,0,0,1) 70%,
@@ -110,12 +92,8 @@
             );
         }
 
-        /* CONTEÚDO */
-        .main-content {
-            flex: 1;
-        }
+        .main-content { flex: 1; }
 
-        /* ===== CARDS ===== */
         .req-card {
             background: white;
             border-radius: 18px;
@@ -153,15 +131,10 @@
             font-weight: bold;
         }
 
-        .req-btn:hover {
-            background: var(--xodo-red-dark);
-        }
+        .req-btn:hover { background: var(--xodo-red-dark); }
 
-        /* RESPONSIVO */
         @media (max-width: 1200px) {
-            .side-image {
-                display: none;
-            }
+            .side-image { display: none; }
         }
     </style>
 </head>
@@ -176,22 +149,46 @@
         </a>
 
         {% if user.is_authenticated %}
-            <div>
-                <span class="nav-user me-3">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+
+                <span class="nav-user me-2">
                   Olá, {{ user.username }}!
                   {% if user.profile and user.profile.location %}
                     <span class="ms-1" style="opacity:.9;">({{ user.profile.location.name }})</span>
                   {% endif %}
                 </span>
 
+                {# ============================
+                   BOTÕES POR FILIAL
+                   ============================ #}
 
-                {% if user.is_staff %}
-                <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold me-2">
-                    Área Restrita
-                </a>
+                {# Austin: só Área Restrita #}
+                {% if user.profile and user.profile.location and user.profile.location.name == "Austin" %}
+                    <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold">
+                        Área Restrita
+                    </a>
                 {% endif %}
 
-                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">Sair</a>
+                {# Queimados: Carrinho + Meus pedidos #}
+                {% if user.profile and user.profile.location and user.profile.location.name == "Queimados" %}
+                    <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
+                        Ver Carrinho
+                    </a>
+                    <a href="{% url 'meus_pedidos' %}" class="btn btn-light btn-sm fw-bold">
+                        Meus pedidos
+                    </a>
+                {% endif %}
+
+                {# Admin geral: Django Admin #}
+                {% if user.is_staff or user.is_superuser %}
+                    <a href="/admin/" class="btn btn-outline-light btn-sm fw-bold">
+                        Admin
+                    </a>
+                {% endif %}
+
+                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">
+                    Sair
+                </a>
             </div>
         {% endif %}
     </div>
@@ -203,12 +200,10 @@
 </div>
 {% endif %}
 
-<!-- CONTEÚDO (empurra o footer pro final) -->
 <div class="container mb-5 main-wrapper">
     {% block content %}{% endblock %}
 </div>
 
-<!-- FOOTER FIXO NO FINAL (sem fundo) -->
 <footer class="text-center py-2">
     <small style="color:#8E1B1B;">
         © 2026 DtechSolution • Grupo H&amp;S
