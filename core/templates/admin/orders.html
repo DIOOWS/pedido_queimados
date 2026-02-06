@@ -1,60 +1,76 @@
-{% extends "base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block title %}Pedidos Recebidos{% endblock %}
-
 {% block content %}
+<h1>Pedidos Recebidos - Filial Austin</h1>
 
-<h2 class="fw-bold mb-4 text-danger">Pedidos Recebidos (Pendentes)</h2>
-
-{% if pending_orders > 0 %}
-<div class="text-center bg-warning py-2 fw-bold mb-3">
-    🔔 {{ pending_orders }} pedido(s) pendente(s)
-</div>
+{% if messages %}
+  {% for message in messages %}
+    <p style="color: green;">{{ message }}</p>
+  {% endfor %}
 {% endif %}
 
-<table class="table table-bordered table-striped shadow-sm bg-white">
-  <thead class="table-danger">
-    <tr class="fw-bold text-center">
-      <th>ID</th>
-      <th>Usuário</th>
-      <th>Data</th>
-      <th>Itens</th>
-      <th>PDF</th>
-      <th>Concluir</th>
-    </tr>
-  </thead>
+{% if orders %}
+  {% for order in orders %}
+    <div style="
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    ">
+      <h3>Pedido #{{ order.id }}</h3>
 
-  <tbody>
-    {% for order in orders %}
-    <tr>
-      <td class="text-center">{{ order.id }}</td>
-      <td>{{ order.user.username }}</td>
-      <td class="text-center">{{ order.created_at|date:"d/m/Y H:i" }}</td>
+      <p>
+        <strong>Origem:</strong> {{ order.origin_location.name }}<br>
+        <strong>Status:</strong> {{ order.get_status_display }}<br>
+        <strong>Criado em:</strong> {{ order.created_at|date:"d/m/Y H:i" }}
+      </p>
 
-      <td class="text-center">{{ order.items.count }}</td>
+      <h4>Itens do pedido</h4>
+      <ul>
+        {% for item in order.items.all %}
+          <li>
+            {{ item.product.name }} —
+            Quantidade: {{ item.quantity }}
+          </li>
+        {% endfor %}
+      </ul>
 
-      <td class="text-center">
-        <a href="{% url 'generate_pdf' order.id %}" class="btn btn-sm btn-danger fw-bold">
-          📄 Gerar PDF
-        </a>
-      </td>
-
-      <td class="text-center">
-        <form action="{% url 'conclude_order' order.id %}" method="post">
+      <div style="margin-top: 15px;">
+        <!-- BOTÃO ENVIADO -->
+        <form method="post" action="{% url 'conclude_order' order.id %}" style="display:inline;">
           {% csrf_token %}
-          <button class="btn btn-sm btn-outline-success fw-bold" type="submit">
-            ✅ Concluir
+          <button type="submit"
+            style="
+              background-color: #198754;
+              color: white;
+              border: none;
+              padding: 8px 12px;
+              cursor: pointer;
+              border-radius: 4px;
+            ">
+            Marcar como ENVIADO
           </button>
         </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6" class="text-center fw-bold text-muted">Nenhum pedido pendente.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+
+        <!-- PDF -->
+        <a href="{% url 'generate_pdf' order.id %}"
+           target="_blank"
+           style="
+             margin-left: 10px;
+             background-color: #0d6efd;
+             color: white;
+             padding: 8px 12px;
+             text-decoration: none;
+             border-radius: 4px;
+           ">
+          PDF
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>Nenhum pedido pendente no momento.</p>
+{% endif %}
 
 {% endblock %}
