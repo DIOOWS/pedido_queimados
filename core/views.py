@@ -363,7 +363,29 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect("requisition_list")
+
+            # 🔑 REDIRECIONAMENTO POR FILIAL
+            try:
+                location = user.profile.location.name
+            except Exception:
+                logout(request)
+                messages.error(
+                    request,
+                    "Usuário sem filial configurada. Fale com o administrador."
+                )
+                return redirect("login")
+
+            if location == "Austin":
+                return redirect("admin_home")
+
+            if location == "Queimados":
+                return redirect("requisition_list")
+
+            # fallback de segurança
+            logout(request)
+            messages.error(request, "Filial inválida.")
+            return redirect("login")
+
         else:
             messages.error(request, "Usuário ou senha inválidos.")
 
