@@ -1,33 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Painel Interno{% endblock %}
+{% block title %}Admin Xodó{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold text-danger mb-4">
-    Painel Interno — Austin
-</h2>
+<h2 class="fw-bold text-danger mb-4">Pedidos Recebidos (Austin)</h2>
 
 {% if orders %}
 <table class="table table-bordered bg-white">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Origem</th>
-            <th>Status</th>
-            <th>Data</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for order in orders %}
-        <tr>
-            <td>#{{ order.id }}</td>
-            <td>{{ order.origin_location.name }}</td>
-            <td>{{ order.get_status_display }}</td>
-            <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Origem</th>
+      <th>Status</th>
+      <th>Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    <tr>
+      <td>#{{ order.id }}</td>
+      <td>{{ order.origin_location.name }}</td>
+      <td>{{ order.get_status_display }}</td>
+      <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% else %}
-<p>Nenhum pedido recebido ainda.</p>
+<p>Nenhum pedido recebido.</p>
 {% endif %}
 {% endblock %}
