@@ -144,7 +144,14 @@ def admin_home(request):
     if not _is_austin(request):
         return HttpResponseForbidden("Acesso restrito ao painel interno.")
 
-    return render(request, "admin/home.html")
+    orders = Order.objects.filter(
+        destination_location=request.user.profile.location
+    ).order_by("-created_at")
+
+    return render(request, "admin/admin_home.html", {
+        "orders": orders
+    })
+
 
 
 @login_required
