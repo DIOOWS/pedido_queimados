@@ -11,6 +11,7 @@ from .models import (
     Location,
     Product,
     Requisition,
+    UserProfile,
 )
 
 
@@ -18,24 +19,25 @@ from .models import (
 # HELPERS
 # ======================================================
 def _get_location_name(request):
-    """
-    Retorna o nome da filial do usuário ou None.
-    Evita erro 500 quando não existe profile/location.
-    """
     try:
-        return request.user.profile.location.name
+        # pode existir profile sem location (null)
+        if hasattr(request.user, "profile") and request.user.profile.location:
+            return request.user.profile.location.name
+        return None
     except Exception:
         return None
 
 
-def _require_location(request):
+def _ensure_profile(request):
     """
-    Se o usuário não tem filial, bloqueia com msg clara.
+    Garante que o usuário tenha UserProfile (mesmo sem filial).
     """
-    loc = _get_location_name(request)
-    if not loc:
-        return HttpResponseForbidden("Usuário sem filial configurada. Configure o UserProfile no /admin/.")
-    return None
+    if not hasattr(request.user, "profile"):
+        UserProfile.objects.create(user=request.user, location=None)
+
+
+def _has_location(request):
+    return _get_location_name(request) is not None
 
 
 def _is_queimados(request):
@@ -44,6 +46,16 @@ def _is_queimados(request):
 
 def _is_austin(request):
     return _get_location_name(request) == "Austin"
+
+
+def _require_location_or_setup(request):
+    """
+    Se não tiver filial, manda pro setup em vez de bloquear.
+    """
+    _ensure_profile(request)
+    if not _has_location(request):
+        return redirect("setup_location")
+    return None
 
 
 # ======================================================
@@ -58,13 +70,14 @@ def login_view(request):
         )
         if user:
             login(request, user)
-            # Austin vai direto pro painel interno
-            try:
-                if user.profile.location.name == "Austin":
-                    return redirect("admin_home")
-            except Exception:
-                pass
-            # Queimados vai pra home (requisition_list)
+
+            # ✅ se não tem profile/filial, vai pro setup
+            if not hasattr(user, "profile") or not user.profile.location:
+                return redirect("setup_location")
+
+            # ✅ redireciona por filial
+            if user.profile.location.name == "Austin":
+                return redirect("admin_home")
             return redirect("requisition_list")
 
         messages.error(request, "Usuário ou senha inválidos.")
@@ -79,11 +92,41 @@ def logout_view(request):
 
 
 # ======================================================
-# HOME "/" (se você quiser usar)
+# SETUP FILIAL (NOVO)
+# ======================================================
+@login_required
+def setup_location(request):
+    """
+    Tela pra escolher filial quando o usuário ainda não tem location.
+    """
+    _ensure_profile(request)
+
+    if request.method == "POST":
+        loc_id = request.POST.get("location_id")
+        try:
+            loc = Location.objects.get(id=loc_id)
+        except Location.DoesNotExist:
+            messages.error(request, "Filial inválida.")
+            return redirect("setup_location")
+
+        request.user.profile.location = loc
+        request.user.profile.save()
+
+        # redireciona por filial
+        if loc.name == "Austin":
+            return redirect("admin_home")
+        return redirect("requisition_list")
+
+    locations = Location.objects.all().order_by("name")
+    return render(request, "setup_location.html", {"locations": locations})
+
+
+# ======================================================
+# HOME "/"
 # ======================================================
 @login_required
 def home(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -97,7 +140,7 @@ def home(request):
 # ======================================================
 @login_required
 def requisition_list(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -113,7 +156,7 @@ def requisition_list(request):
 
 @login_required
 def requisition_detail(request, id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -137,7 +180,7 @@ def requisition_detail(request, id):
 # ======================================================
 @login_required
 def cart_view(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -162,7 +205,7 @@ def cart_view(request):
 
 @login_required
 def cart_add(request, product_id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -184,13 +227,12 @@ def cart_add(request, product_id):
     key = str(product_id)
     cart[key] = int(cart.get(key, 0)) + qty
     request.session["cart"] = cart
-
     return redirect("cart_view")
 
 
 @login_required
 def cart_update(request, product_id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -207,7 +249,6 @@ def cart_update(request, product_id):
         qty = 0
 
     key = str(product_id)
-
     if qty <= 0:
         cart.pop(key, None)
     else:
@@ -219,7 +260,7 @@ def cart_update(request, product_id):
 
 @login_required
 def cart_remove(request, product_id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -237,7 +278,7 @@ def cart_remove(request, product_id):
 
 @login_required
 def cart_submit(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -252,13 +293,11 @@ def cart_submit(request):
         messages.error(request, "Carrinho vazio.")
         return redirect("cart_view")
 
-    try:
-        destino = Location.objects.get(name="Austin")
-    except Location.DoesNotExist:
+    destino = Location.objects.filter(name="Austin").first()
+    if not destino:
         messages.error(request, "Filial destino (Austin) não existe. Crie no /admin/ > Location.")
         return redirect("cart_view")
 
-    # cria pedido
     order = Order.objects.create(
         created_by=request.user,
         origin_location=request.user.profile.location,
@@ -266,14 +305,12 @@ def cart_submit(request):
         status=Order.Status.CRIADO,
     )
 
-    # histórico inicial
     OrderStatusHistory.objects.create(
         order=order,
         status=order.status,
         changed_by=request.user
     )
 
-    # itens
     for pid_str, qty in cart.items():
         try:
             pid = int(pid_str)
@@ -284,11 +321,7 @@ def cart_submit(request):
         if q <= 0:
             continue
 
-        OrderItem.objects.create(
-            order=order,
-            product_id=pid,
-            quantity=q
-        )
+        OrderItem.objects.create(order=order, product_id=pid, quantity=q)
 
     request.session["cart"] = {}
     return redirect("order_sent")
@@ -296,7 +329,7 @@ def cart_submit(request):
 
 @login_required
 def order_sent(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -308,7 +341,7 @@ def order_sent(request):
 
 @login_required
 def user_orders(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -330,7 +363,7 @@ def user_orders(request):
 # ======================================================
 @login_required
 def confirmar_recebimento(request, id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -340,11 +373,7 @@ def confirmar_recebimento(request, id):
     if not _is_queimados(request):
         return HttpResponseForbidden("Acesso restrito.")
 
-    order = get_object_or_404(
-        Order,
-        id=id,
-        origin_location=request.user.profile.location
-    )
+    order = get_object_or_404(Order, id=id, origin_location=request.user.profile.location)
 
     if order.status != Order.Status.ENVIADO:
         messages.error(request, "Este pedido ainda não foi marcado como ENVIADO pela filial destino.")
@@ -364,11 +393,11 @@ def confirmar_recebimento(request, id):
 
 
 # ======================================================
-# AUSTIN — ADMIN XODÓ (painel interno)
+# AUSTIN — ADMIN XODÓ
 # ======================================================
 @login_required
 def admin_home(request):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
@@ -384,18 +413,14 @@ def admin_home(request):
 
 @login_required
 def advance_status(request, id):
-    err = _require_location(request)
+    err = _require_location_or_setup(request)
     if err:
         return err
 
     if not _is_austin(request):
         return HttpResponseForbidden("Acesso restrito.")
 
-    order = get_object_or_404(
-        Order,
-        id=id,
-        destination_location=request.user.profile.location
-    )
+    order = get_object_or_404(Order, id=id, destination_location=request.user.profile.location)
 
     # Fluxo: CRIADO -> RECEBIDO_DESTINO -> SEPARANDO -> ENVIADO
     if order.status == Order.Status.CRIADO:
@@ -405,7 +430,6 @@ def advance_status(request, id):
     elif order.status == Order.Status.SEPARANDO:
         order.status = Order.Status.ENVIADO
     else:
-        # já finalizado ou estado não previsto
         return redirect("admin_home")
 
     order.save()

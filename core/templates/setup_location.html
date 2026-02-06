@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Escolher Filial{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4">
+  <h3 class="fw-bold mb-2" style="color:#8E1B1B;">Primeiro acesso</h3>
+  <p class="text-muted mb-3">Escolha sua filial para liberar o sistema:</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <select class="form-select mb-3" name="location_id" required>
+      <option value="" selected disabled>Selecione...</option>
+      {% for loc in locations %}
+        <option value="{{ loc.id }}">{{ loc.name }}</option>
+      {% endfor %}
+    </select>
+
+    <button class="btn btn-danger fw-bold">Salvar</button>
+  </form>
+</div>
+{% endblock %}

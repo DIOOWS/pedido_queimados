@@ -11,10 +11,12 @@ class Location(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    location = models.ForeignKey(Location, on_delete=models.PROTECT)
+    # ✅ deixa nulo até o usuário escolher no /setup/
+    location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.location.name}"
+        loc = self.location.name if self.location else "SEM FILIAL"
+        return f"{self.user.username} - {loc}"
 
 
 class Requisition(models.Model):
@@ -42,10 +44,10 @@ class Product(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         CRIADO = "CRIADO", "Criado"
-        RECEBIDO_DESTINO = "RECEBIDO_DESTINO", "Recebido pela filial destino"
+        RECEBIDO_DESTINO = "RECEBIDO_DESTINO", "Recebido no destino"
         SEPARANDO = "SEPARANDO", "Separando"
         ENVIADO = "ENVIADO", "Enviado"
-        RECEBIDO_ORIGEM = "RECEBIDO_ORIGEM", "Recebido pela filial origem"
+        RECEBIDO_ORIGEM = "RECEBIDO_ORIGEM", "Recebido na origem"
 
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
     origin_location = models.ForeignKey(
@@ -58,13 +60,7 @@ class Order(models.Model):
         on_delete=models.PROTECT,
         related_name="orders_received"
     )
-
-    status = models.CharField(
-        max_length=30,  # aumentei pra caber RECEBIDO_DESTINO/ORIGEM sem risco
-        choices=Status.choices,
-        default=Status.CRIADO
-    )
-
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.CRIADO)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -81,16 +77,10 @@ class OrderItem(models.Model):
 
 
 class OrderStatusHistory(models.Model):
-    """
-    Histórico de status (para medir tempo: recebido -> enviado -> recebido origem)
-    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="status_history")
     status = models.CharField(max_length=30)
     changed_at = models.DateTimeField(auto_now_add=True)
     changed_by = models.ForeignKey(User, on_delete=models.PROTECT)
-
-    class Meta:
-        ordering = ["changed_at"]
 
     def __str__(self):
         return f"Pedido {self.order.id} - {self.status} - {self.changed_at}"

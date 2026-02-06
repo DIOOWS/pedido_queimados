@@ -45,37 +45,49 @@
     <div class="container d-flex justify-content-between align-items-center">
 
         <a href="/" class="d-flex align-items-center text-white text-decoration-none fw-bold">
-            <img src="{% static 'logo_xodo.png' %}" class="xodo-logo me-2">
+            <img src="{% static 'logo_xodo.png' %}" class="xodo-logo me-2" alt="Logo Xodó">
             Sistema de Pedidos Prontos Xodó
         </a>
 
         {% if user.is_authenticated %}
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+
             <span class="nav-user">
                 Olá, {{ user.username }}!
-                {% if user.profile %}
+                {% if user.profile and user.profile.location %}
                     ({{ user.profile.location.name }})
+                {% else %}
+                    (Sem filial)
                 {% endif %}
             </span>
 
-            {% if user.profile.location.name == "Queimados" %}
-                <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
-                    Ver Carrinho
-                </a>
-                <a href="{% url 'user_orders' %}" class="btn btn-light btn-sm fw-bold">
-                    Meus pedidos
-                </a>
-            {% endif %}
+            {# ✅ Botões só se existir filial #}
+            {% if user.profile and user.profile.location %}
 
-            {% if user.profile.location.name == "Austin" %}
-                <a href="{% url 'admin_home' %}" class="btn btn-warning btn-sm fw-bold">
-                    Área Restrita
-                </a>
+                {% if user.profile.location.name == "Queimados" %}
+                    <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
+                        Ver Carrinho
+                    </a>
+                    <a href="{% url 'user_orders' %}" class="btn btn-light btn-sm fw-bold">
+                        Meus pedidos
+                    </a>
+                    <a href="{% url 'requisition_list' %}" class="btn btn-light btn-sm fw-bold">
+                        Requisições
+                    </a>
+                {% endif %}
+
+                {% if user.profile.location.name == "Austin" %}
+                    <a href="{% url 'admin_home' %}" class="btn btn-warning btn-sm fw-bold">
+                        Área Restrita
+                    </a>
+                {% endif %}
+
             {% endif %}
 
             <a href="{% url 'logout' %}" class="btn btn-danger btn-sm fw-bold">
                 Sair
             </a>
+
         </div>
         {% endif %}
     </div>
@@ -86,7 +98,7 @@
 </div>
 
 <footer>
-    © 2026 DtechSolution • Grupo H&S
+    © 2026 DtechSolution • Grupo H&amp;S
 </footer>
 
 </body>
