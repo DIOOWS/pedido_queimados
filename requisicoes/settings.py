@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     "cloudinary_storage",
 
     "core.apps.CoreConfig",
+    # apps do projeto
+    "core",
+    "requisicoes.apps.RequisicoesConfig",  # ← OBRIGATÓRIO assim
 
 ]
 
