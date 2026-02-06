@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# =========================================================
+# FILIAIS
+# =========================================================
 class Location(models.Model):
     """
     Representa uma filial (ex: Queimados, Austin)
@@ -12,32 +15,66 @@ class Location(models.Model):
         return self.name
 
 
+# =========================================================
+# PERFIL DO USUÁRIO
+# =========================================================
 class UserProfile(models.Model):
     """
-    Perfil do usuário ligado a uma filial
+    Liga o usuário a uma filial
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    location = models.ForeignKey(Location, on_delete=models.PROTECT)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="profile"
+    )
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.PROTECT
+    )
 
     def __str__(self):
-        return f"{self.user.username} - {self.location.name}"
+        return f"{self.user.username} ({self.location.name})"
 
 
-class Product(models.Model):
+# =========================================================
+# REQUISIÇÕES (SÓ PARA QUEIMADOS)
+# =========================================================
+class Requisition(models.Model):
     """
-    Produto base do sistema
-    (mantive simples, ajusta se já tiver algo mais completo)
+    Agrupador visual / categoria de produtos
+    Ex: Mini Pizza, Empadão, Bolo, etc
     """
     name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to="requisitions/", blank=True, null=True)
+    icon = models.ImageField(upload_to="requisition_icons/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
 
+# =========================================================
+# PRODUTOS (PERTENCEM A UMA REQUISIÇÃO)
+# =========================================================
+class Product(models.Model):
+    requisition = models.ForeignKey(
+        Requisition,
+        on_delete=models.CASCADE,
+        related_name="products"
+    )
+    name = models.CharField(max_length=120)
+
+    def __str__(self):
+        return f"{self.requisition.name} - {self.name}"
+
+
+# =========================================================
+# PEDIDO (QUEIMADOS → AUSTIN)
+# =========================================================
 class Order(models.Model):
     """
-    Pedido interfilial:
-    Queimados -> Austin
+    Pedido interfilial
     """
 
     class Status(models.TextChoices):
@@ -77,10 +114,10 @@ class Order(models.Model):
         return f"Pedido #{self.id} ({self.origin_location} → {self.destination_location})"
 
 
+# =========================================================
+# ITENS DO PEDIDO
+# =========================================================
 class OrderItem(models.Model):
-    """
-    Itens do pedido
-    """
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
@@ -98,11 +135,10 @@ class OrderItem(models.Model):
         return f"{self.product.name} x {self.quantity}"
 
 
+# =========================================================
+# HISTÓRICO DE STATUS (AUDITORIA)
+# =========================================================
 class OrderStatusHistory(models.Model):
-    """
-    Histórico de mudança de status do pedido
-    ESSENCIAL para cálculo de tempo
-    """
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
