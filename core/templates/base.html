@@ -174,7 +174,7 @@
                     <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
                         Ver Carrinho
                     </a>
-                    <a href="{% url 'meus_pedidos' %}" class="btn btn-light btn-sm fw-bold">
+                    <a href="{% url 'user_orders' %}" class="btn btn-light btn-sm fw-bold">
                         Meus pedidos
                     </a>
                 {% endif %}
@@ -194,7 +194,7 @@
     </div>
 </nav>
 
-{% if pending_orders > 0 %}
+{% if pending_orders|default:0 > 0 %}
 <div class="text-center bg-warning py-2 fw-bold">
     🔔 {{ pending_orders }} novo(s) pedido(s) aguardando
 </div>
