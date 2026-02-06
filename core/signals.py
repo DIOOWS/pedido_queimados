@@ -7,6 +7,9 @@ from requisicoes.models import UserProfile
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
+    """
+    Cria o profile automaticamente quando cria usuário.
+    NÃO faz query em Location aqui (evita 500 no deploy).
+    """
     if created:
-        # ✅ cria profile sem filial (o usuário escolhe no /setup/)
-        UserProfile.objects.create(user=instance, location=None)
+        UserProfile.objects.get_or_create(user=instance)
