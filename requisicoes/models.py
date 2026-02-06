@@ -42,9 +42,10 @@ class Product(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         CRIADO = "CRIADO", "Criado"
+        RECEBIDO_DESTINO = "RECEBIDO_DESTINO", "Recebido pela filial destino"
         SEPARANDO = "SEPARANDO", "Separando"
         ENVIADO = "ENVIADO", "Enviado"
-        RECEBIDO = "RECEBIDO", "Recebido"
+        RECEBIDO_ORIGEM = "RECEBIDO_ORIGEM", "Recebido pela filial origem"
 
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
     origin_location = models.ForeignKey(
@@ -57,7 +58,13 @@ class Order(models.Model):
         on_delete=models.PROTECT,
         related_name="orders_received"
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CRIADO)
+
+    status = models.CharField(
+        max_length=30,  # aumentei pra caber RECEBIDO_DESTINO/ORIGEM sem risco
+        choices=Status.choices,
+        default=Status.CRIADO
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -68,3 +75,22 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.product.name} x {self.quantity}"
+
+
+class OrderStatusHistory(models.Model):
+    """
+    Histórico de status (para medir tempo: recebido -> enviado -> recebido origem)
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="status_history")
+    status = models.CharField(max_length=30)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    changed_by = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    class Meta:
+        ordering = ["changed_at"]
+
+    def __str__(self):
+        return f"Pedido {self.order.id} - {self.status} - {self.changed_at}"

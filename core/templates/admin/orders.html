@@ -34,7 +34,7 @@
         <hr>
 
         <h6 class="fw-bold">Itens</h6>
-        <ul>
+        <ul class="mb-0">
           {% for item in order.items.all %}
             <li>{{ item.product.name }} — <strong>{{ item.quantity }}</strong></li>
           {% endfor %}
@@ -42,25 +42,28 @@
 
         <div class="d-flex gap-2 flex-wrap mt-3">
 
-          {% if order.status == "CRIADO" %}
-            <a href="{% url 'update_order_status' order.id 'RECEBIDO' %}"
-               class="btn btn-warning fw-bold">
-              Marcar como Recebido
-            </a>
-          {% endif %}
+          {# Com seu views.advance_status atual:
+             CRIADO -> SEPARANDO -> ENVIADO
+          #}
 
-          {% if order.status == "RECEBIDO" %}
-            <a href="{% url 'update_order_status' order.id 'SEPARANDO' %}"
+          {% if order.status == "CRIADO" %}
+            <a href="{% url 'advance_status' order.id %}"
                class="btn btn-primary fw-bold">
               Iniciar Separação
             </a>
           {% endif %}
 
           {% if order.status == "SEPARANDO" %}
-            <a href="{% url 'update_order_status' order.id 'ENVIADO' %}"
+            <a href="{% url 'advance_status' order.id %}"
                class="btn btn-success fw-bold">
               Marcar como Enviado
             </a>
+          {% endif %}
+
+          {% if order.status == "ENVIADO" %}
+            <span class="badge bg-success p-2">
+              Pedido enviado ✅
+            </span>
           {% endif %}
 
         </div>
