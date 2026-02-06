@@ -6,7 +6,6 @@
 
     <title>{% block title %}Sistema Xodó{% endblock %}</title>
 
-    <!-- Responsivo -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap -->
@@ -15,10 +14,9 @@
     <!-- Favicon -->
     <link rel="icon" href="{% static 'favicon.ico' %}">
 
-    <!-- Cor da barra do navegador (mobile) -->
     <meta name="theme-color" content="#8E1B1B">
 
-    <!-- Open Graph (WhatsApp/Facebook) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="Pedidos Prontos Xodó">
     <meta property="og:description" content="Sistema de Pedidos Prontos Xodó">
     <meta property="og:image" content="https://pedido-queimados.onrender.com/static/logo_xodo.png">
@@ -59,41 +57,18 @@
         .nav-user {
             font-weight: bold;
             color: white;
+            white-space: nowrap;
         }
 
-        .layout-wrapper {
+        .nav-actions {
             display: flex;
-            align-items: flex-start;
-            gap: 40px;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
-        .side-image {
-            width: 420px;
-            margin-left: -60px;
-            margin-top: 40px;
-            pointer-events: none;
-            flex-shrink: 0;
-        }
-
-        .decorative-img {
-            width: 100%;
-            display: block;
-            transform: perspective(1200px) translateZ(40px);
-            filter: drop-shadow(0 30px 45px rgba(0,0,0,.28));
-            -webkit-mask-image: linear-gradient(
-                to bottom,
-                rgba(0,0,0,1) 70%,
-                rgba(0,0,0,0) 100%
-            );
-            mask-image: linear-gradient(
-                to bottom,
-                rgba(0,0,0,1) 70%,
-                rgba(0,0,0,0) 100%
-            );
-        }
-
-        .main-content { flex: 1; }
-
+        /* ===== CARDS (mantive aqui porque teu layout usa) ===== */
         .req-card {
             background: white;
             border-radius: 18px;
@@ -129,47 +104,38 @@
             padding: 8px 0;
             display: block;
             font-weight: bold;
+            text-decoration: none;
         }
 
         .req-btn:hover { background: var(--xodo-red-dark); }
-
-        @media (max-width: 1200px) {
-            .side-image { display: none; }
-        }
     </style>
 </head>
 
 <body>
 
 <nav class="navbar xodo-navbar mb-4">
-    <div class="container d-flex justify-content-between">
+    <div class="container d-flex justify-content-between align-items-center">
         <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
             <img src="{% static 'logo_xodo.png' %}" class="xodo-logo me-2" alt="Logo Xodó">
             Sistema de Pedidos Prontos Xodó
         </a>
 
         {% if user.is_authenticated %}
-            <div class="d-flex align-items-center flex-wrap gap-2">
+            <div class="nav-actions">
 
-                <span class="nav-user me-2">
-                  Olá, {{ user.username }}!
-                  {% if user.profile and user.profile.location %}
-                    <span class="ms-1" style="opacity:.9;">({{ user.profile.location.name }})</span>
-                  {% endif %}
+                <span class="nav-user">
+                    Olá, {{ user.username }}!
+                    {% if user.profile and user.profile.location %}
+                        <span style="opacity:.9;">({{ user.profile.location.name }})</span>
+                    {% endif %}
                 </span>
 
-                {# ============================
-                   BOTÕES POR FILIAL
-                   ============================ #}
-
-                {# Austin: só Área Restrita #}
                 {% if user.profile and user.profile.location and user.profile.location.name == "Austin" %}
-                    <a href="/xodo-admin/" class="btn btn-warning btn-sm fw-bold">
+                    <a href="{% url 'admin_home' %}" class="btn btn-warning btn-sm fw-bold">
                         Área Restrita
                     </a>
                 {% endif %}
 
-                {# Queimados: Carrinho + Meus pedidos #}
                 {% if user.profile and user.profile.location and user.profile.location.name == "Queimados" %}
                     <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
                         Ver Carrinho
@@ -179,22 +145,22 @@
                     </a>
                 {% endif %}
 
-                {# Admin geral: Django Admin #}
                 {% if user.is_staff or user.is_superuser %}
                     <a href="/admin/" class="btn btn-outline-light btn-sm fw-bold">
                         Admin
                     </a>
                 {% endif %}
 
-                <a href="/logout/" class="btn btn-danger btn-sm fw-bold">
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm fw-bold">
                     Sair
                 </a>
+
             </div>
         {% endif %}
     </div>
 </nav>
 
-{% if pending_orders|default:0 > 0 %}
+{% if pending_orders %}
 <div class="text-center bg-warning py-2 fw-bold">
     🔔 {{ pending_orders }} novo(s) pedido(s) aguardando
 </div>

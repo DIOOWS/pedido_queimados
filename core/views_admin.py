@@ -6,81 +6,162 @@ from django.contrib import messages
 from .models import Order, OrderStatusHistory
 
 
-def _is_austin(request):
+# =========================================================
+# HELPERS
+# =========================================================
+def _user_location_name(request):
     try:
-        return request.user.profile.location.name == "Austin"
+        return (request.user.profile.location.name or "").strip()
     except Exception:
-        return False
+        return ""
+
+
+def _require_profile_location(request):
+    loc = _user_location_name(request)
+    if not loc:
+        return HttpResponseForbidden("Usuário sem filial configurada. Configure o UserProfile no /admin/.")
+    return None
+
+
+def _is_austin(request):
+    return _user_location_name(request).lower() == "austin"
+
+
+def _can_access_admin_xodo(request):
+    # Austin acessa /xodo-admin/ mesmo sem staff
+    # Superuser também pode (manutenção)
+    if request.user.is_superuser:
+        return True
+    return _is_austin(request)
+
+
+def _require_admin_xodo(request):
+    err = _require_profile_location(request)
+    if err:
+        return err
+    if not _can_access_admin_xodo(request):
+        return HttpResponseForbidden("Acesso restrito ao painel interno (Austin).")
+    return None
+
+
+def _add_history(order, status, user):
+    OrderStatusHistory.objects.create(
+        order=order,
+        status=status,
+        changed_by=user
+    )
 
 
 # =========================================================
-# HOME DO PAINEL INTERNO (AUSTIN)
-# URL: /xodo-admin/
+# HOME DO ADMIN XODÓ (AUSTIN)
+# usa a tela do painel interno que você já tem
 # =========================================================
 @login_required
 def admin_home(request):
-    if not _is_austin(request):
-        return HttpResponseForbidden("Acesso restrito ao painel interno.")
+    err = _require_admin_xodo(request)
+    if err:
+        return err
 
-    return render(request, "admin/home.html")
+    # você pode manter um template simples com links (ou o que já existe)
+    # caso não exista, crie: templates/admin/admin_home.html
+    return render(request, "admin/admin_home.html")
 
 
 # =========================================================
-# LISTA DE PEDIDOS RECEBIDOS (AUSTIN)
-# URL: /xodo-admin/pedidos/
+# LISTA DE PEDIDOS (AUSTIN) - só pedidos destinados a Austin
 # =========================================================
 @login_required
 def order_list(request):
-    if not _is_austin(request):
-        return HttpResponseForbidden("Acesso restrito ao painel interno.")
+    err = _require_admin_xodo(request)
+    if err:
+        return err
 
+    austin_location = request.user.profile.location
     orders = Order.objects.filter(
-        destination_location__name="Austin"
-    ).exclude(
-        status=Order.Status.RECEBIDO_ORIGEM
-    ).order_by("created_at")
+        destination_location=austin_location
+    ).order_by("-created_at")
 
-    return render(request, "admin/orders.html", {
-        "orders": orders
-    })
+    return render(request, "admin/orders.html", {"orders": orders})
 
 
 # =========================================================
-# ATUALIZAR STATUS DO PEDIDO (AUSTIN)
+# DASHBOARD (AUSTIN) - contadores rápidos
 # =========================================================
 @login_required
-def update_order_status(request, order_id, new_status):
-    if not _is_austin(request):
-        return HttpResponseForbidden("Acesso restrito ao painel interno.")
+def dashboard(request):
+    err = _require_admin_xodo(request)
+    if err:
+        return err
+
+    austin_location = request.user.profile.location
+
+    qs = Order.objects.filter(destination_location=austin_location)
+    data = {
+        "total": qs.count(),
+        "criado": qs.filter(status=Order.Status.CRIADO).count(),
+        "recebido": qs.filter(status=Order.Status.RECEBIDO).count(),
+        "separando": qs.filter(status=Order.Status.SEPARANDO).count(),
+        "enviado": qs.filter(status=Order.Status.ENVIADO).count(),
+        "recebido_origem": qs.filter(status=Order.Status.RECEBIDO_ORIGEM).count(),
+    }
+
+    return render(request, "admin/dashboard.html", data)
+
+
+# =========================================================
+# AÇÃO ÚNICA: AVANÇAR STATUS (botão "Concluir/Avançar")
+# Fluxo:
+# CRIADO -> RECEBIDO -> SEPARANDO -> ENVIADO
+# =========================================================
+@login_required
+def conclude_order(request, id):
+    err = _require_admin_xodo(request)
+    if err:
+        return err
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Método inválido.")
+
+    austin_location = request.user.profile.location
 
     order = get_object_or_404(
         Order,
-        id=order_id,
-        destination_location__name="Austin"
+        id=id,
+        destination_location=austin_location
     )
 
-    allowed = [
-        Order.Status.RECEBIDO,
-        Order.Status.SEPARANDO,
-        Order.Status.ENVIADO,
-    ]
+    # Avança no fluxo
+    if order.status == Order.Status.CRIADO:
+        order.status = Order.Status.RECEBIDO
+        order.save()
+        _add_history(order, Order.Status.RECEBIDO, request.user)
+        messages.success(request, f"Pedido #{order.id}: marcado como RECEBIDO.")
 
-    if new_status not in allowed:
-        messages.error(request, "Status inválido.")
-        return redirect("order_list")
+    elif order.status == Order.Status.RECEBIDO:
+        order.status = Order.Status.SEPARANDO
+        order.save()
+        _add_history(order, Order.Status.SEPARANDO, request.user)
+        messages.success(request, f"Pedido #{order.id}: marcado como SEPARANDO.")
 
-    order.status = new_status
-    order.save()
+    elif order.status == Order.Status.SEPARANDO:
+        order.status = Order.Status.ENVIADO
+        order.save()
+        _add_history(order, Order.Status.ENVIADO, request.user)
+        messages.success(request, f"Pedido #{order.id}: marcado como ENVIADO.")
 
-    OrderStatusHistory.objects.create(
-        order=order,
-        status=new_status,
-        changed_by=request.user
-    )
-
-    messages.success(
-        request,
-        f"Pedido #{order.id} atualizado para {order.get_status_display()}."
-    )
+    else:
+        messages.warning(request, f"Pedido #{order.id} já está em status final ({order.get_status_display()}).")
 
     return redirect("order_list")
+
+
+# =========================================================
+# PDF (opcional) - por enquanto desativado
+# =========================================================
+@login_required
+def generate_pdf(request, id):
+    err = _require_admin_xodo(request)
+    if err:
+        return err
+
+    return HttpResponseForbidden("PDF ainda não configurado neste fluxo.")
