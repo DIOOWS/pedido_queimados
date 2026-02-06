@@ -3,177 +3,90 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-
-    <title>{% block title %}Sistema Xodó{% endblock %}</title>
+    <title>{% block title %}Sistema de Pedidos Prontos Xodó{% endblock %}</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Favicon -->
     <link rel="icon" href="{% static 'favicon.ico' %}">
 
-    <meta name="theme-color" content="#8E1B1B">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Pedidos Prontos Xodó">
-    <meta property="og:description" content="Sistema de Pedidos Prontos Xodó">
-    <meta property="og:image" content="https://pedido-queimados.onrender.com/static/logo_xodo.png">
-    <meta property="og:url" content="https://pedido-queimados.onrender.com">
-    <meta property="og:type" content="website">
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Pedidos Prontos Xodó">
-    <meta name="twitter:description" content="Sistema de Pedidos Prontos Xodó">
-    <meta name="twitter:image" content="https://pedido-queimados.onrender.com/static/logo_xodo.png">
-
     <style>
-        :root {
-            --xodo-red: #a61c1c;
-            --xodo-red-dark: #7a1111;
-            --xodo-yellow: #f2b233;
-        }
-
-        html, body { height: 100%; }
-
         body {
-            background: #FDCF6D;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
+            background: #FFD778;
+            min-height: 100vh;
         }
-
-        .main-wrapper { flex: 1; }
 
         .xodo-navbar {
             background: linear-gradient(90deg, #8E1B1B, #E09F2D);
-            padding: 12px;
+            padding: 12px 0;
         }
 
-        .xodo-logo { height: 42px; }
+        .xodo-logo {
+            height: 42px;
+        }
 
         .nav-user {
-            font-weight: bold;
             color: white;
-            white-space: nowrap;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        /* ===== CARDS (mantive aqui porque teu layout usa) ===== */
-        .req-card {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,.12);
-            text-align: center;
-            transition: .2s;
-        }
-
-        .req-card:hover {
-            transform: scale(1.04);
-            box-shadow: 0 6px 14px rgba(0,0,0,.18);
-        }
-
-        .req-card img {
-            height: 80px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        .req-title {
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--xodo-red-dark);
-            height: 40px;
-        }
-
-        .req-btn {
-            margin-top: 10px;
-            background: var(--xodo-red);
-            color: white !important;
-            border-radius: 10px;
-            padding: 8px 0;
-            display: block;
             font-weight: bold;
-            text-decoration: none;
         }
 
-        .req-btn:hover { background: var(--xodo-red-dark); }
+        footer {
+            color: #8E1B1B;
+            text-align: center;
+            padding: 12px 0;
+        }
     </style>
 </head>
 
 <body>
 
-<nav class="navbar xodo-navbar mb-4">
+<nav class="navbar xodo-navbar">
     <div class="container d-flex justify-content-between align-items-center">
-        <a href="/" class="navbar-brand d-flex align-items-center text-white fw-bold">
-            <img src="{% static 'logo_xodo.png' %}" class="xodo-logo me-2" alt="Logo Xodó">
+
+        <a href="/" class="d-flex align-items-center text-white text-decoration-none fw-bold">
+            <img src="{% static 'logo_xodo.png' %}" class="xodo-logo me-2">
             Sistema de Pedidos Prontos Xodó
         </a>
 
         {% if user.is_authenticated %}
-            <div class="nav-actions">
-
-                <span class="nav-user">
-                    Olá, {{ user.username }}!
-                    {% if user.profile and user.profile.location %}
-                        <span style="opacity:.9;">({{ user.profile.location.name }})</span>
-                    {% endif %}
-                </span>
-
-                {% if user.profile and user.profile.location and user.profile.location.name == "Austin" %}
-                    <a href="{% url 'admin_home' %}" class="btn btn-warning btn-sm fw-bold">
-                        Área Restrita
-                    </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="nav-user">
+                Olá, {{ user.username }}!
+                {% if user.profile %}
+                    ({{ user.profile.location.name }})
                 {% endif %}
+            </span>
 
-                {% if user.profile and user.profile.location and user.profile.location.name == "Queimados" %}
-                    <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
-                        Ver Carrinho
-                    </a>
-                    <a href="{% url 'user_orders' %}" class="btn btn-light btn-sm fw-bold">
-                        Meus pedidos
-                    </a>
-                {% endif %}
-
-                {% if user.is_staff or user.is_superuser %}
-                    <a href="/admin/" class="btn btn-outline-light btn-sm fw-bold">
-                        Admin
-                    </a>
-                {% endif %}
-
-                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm fw-bold">
-                    Sair
+            {% if user.profile.location.name == "Queimados" %}
+                <a href="{% url 'cart_view' %}" class="btn btn-light btn-sm fw-bold">
+                    Ver Carrinho
                 </a>
+                <a href="{% url 'user_orders' %}" class="btn btn-light btn-sm fw-bold">
+                    Meus pedidos
+                </a>
+            {% endif %}
 
-            </div>
+            {% if user.profile.location.name == "Austin" %}
+                <a href="{% url 'admin_home' %}" class="btn btn-warning btn-sm fw-bold">
+                    Área Restrita
+                </a>
+            {% endif %}
+
+            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm fw-bold">
+                Sair
+            </a>
+        </div>
         {% endif %}
     </div>
 </nav>
 
-{% if pending_orders %}
-<div class="text-center bg-warning py-2 fw-bold">
-    🔔 {{ pending_orders }} novo(s) pedido(s) aguardando
-</div>
-{% endif %}
-
-<div class="container mb-5 main-wrapper">
+<div class="container my-5">
     {% block content %}{% endblock %}
 </div>
 
-<footer class="text-center py-2">
-    <small style="color:#8E1B1B;">
-        © 2026 DtechSolution • Grupo H&amp;S
-    </small>
+<footer>
+    © 2026 DtechSolution • Grupo H&S
 </footer>
 
 </body>
