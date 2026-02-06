@@ -169,3 +169,19 @@ else:
     SECURE_HSTS_SECONDS = 0
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+
+    "requisicoes.middleware.EnsureUserProfileMiddleware",  # ✅ AQUI
+
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
