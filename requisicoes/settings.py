@@ -15,14 +15,8 @@ DEBUG = os.environ.get("DEBUG", "0") == "1"
 # Render hostname (quando existir)
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
+ALLOWED_HOSTS = ["*"] if DEBUG else ["127.0.0.1", "localhost", "pedido-queimados.onrender.com"]
 
-    # seus domínios (vi no histórico que você usa os dois)
-    "pedido-queimados.onrender.com",
-    "requisicao-pmmc.onrender.com",
-]
 
 # Se o Render fornecer o hostname automaticamente, inclui também
 if RENDER_EXTERNAL_HOSTNAME:

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.shortcuts import redirect
 
 from .models import (
     Order,
@@ -48,14 +49,19 @@ def _is_austin(request):
     return _get_location_name(request) == "Austin"
 
 
-def _require_location_or_setup(request):
-    """
-    Se não tiver filial, manda pro setup em vez de bloquear.
-    """
-    _ensure_profile(request)
-    if not _has_location(request):
-        return redirect("setup_location")
+
+
+def _require_location(request):
+    try:
+        loc = request.user.profile.location
+    except Exception:
+        loc = None
+
+    if not loc:
+        messages.error(request, "Seu usuário está sem filial. Entre no /admin/ e configure o UserProfile.")
+        return redirect("logout")  # desloga e volta pro login
     return None
+
 
 
 # ======================================================
