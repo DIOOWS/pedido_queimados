@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
-from core import views
+
+import views_user
+from core import views, views_admin
 
 urlpatterns = [
     # favicon: evita 404 em /favicon.ico
@@ -45,4 +47,10 @@ urlpatterns = [
     # DJANGO ADMIN
     # ====================
     path("admin/", admin.site.urls),
+
+
+    path("", views_user.requisition_list, name="requisition_list"),
+    path("requisition/<int:id>/", views_user.requisition_detail, name="requisition_detail"),
+    path("xodo-admin/", views_admin.admin_home, name="admin_home"),
+
 ]
