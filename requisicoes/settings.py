@@ -2,8 +2,6 @@ from pathlib import Path
 import os
 import dj_database_url
 
-
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ===============================
@@ -17,8 +15,14 @@ DEBUG = os.environ.get("DEBUG", "0") == "1"
 # Render hostname (quando existir)
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "requisicao-pmmc.onrender.com"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
 
+    # seus domínios (vi no histórico que você usa os dois)
+    "pedido-queimados.onrender.com",
+    "requisicao-pmmc.onrender.com",
+]
 
 # Se o Render fornecer o hostname automaticamente, inclui também
 if RENDER_EXTERNAL_HOSTNAME:
@@ -26,6 +30,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 CSRF_TRUSTED_ORIGINS = [
     "https://pedido-queimados.onrender.com",
+    "https://requisicao-pmmc.onrender.com",
 ]
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
@@ -44,11 +49,11 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
 
+    # ✅ DEIXA SÓ UM (nada de "core" duplicado)
     "core.apps.CoreConfig",
-    # apps do projeto
-    "core",
-    "requisicoes.apps.RequisicoesConfig",  # ← OBRIGATÓRIO assim
 
+    # app do projeto (a tua “app principal” com models/views)
+    "requisicoes.apps.RequisicoesConfig",
 ]
 
 # ===============================
@@ -81,6 +86,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+
+                # ✅ se seu base.html usa pending_orders, isso precisa estar aqui:
+                "core.context_processors.pending_orders",
             ],
         },
     },
@@ -145,11 +153,7 @@ LOGOUT_REDIRECT_URL = "/login/"
 # ===============================
 # SEGURANÇA PRODUÇÃO
 # ===============================
-# No Render você está atrás de proxy HTTPS
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-DEBUG = os.environ.get("DEBUG", "0") == "1"
-
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -164,7 +168,4 @@ else:
     CSRF_COOKIE_SECURE = False
     SECURE_HSTS_SECONDS = 0
 
-
-# Default auto field (Django 5+)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
